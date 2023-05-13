@@ -14,7 +14,7 @@ const Maze: React.FC = () => {
     let maze: number[][];
 
     const updateMaze = () => {
-      maze = generateMaze(1, 1);
+      maze = generateMaze(50, 50);
   
       drawMaze();
     }
@@ -31,7 +31,7 @@ const Maze: React.FC = () => {
 
       const width = maze[0].length;
       const height = maze.length;
-      const pixelSize = 15;
+      const pixelSize = 50;
 
       hiddenRef.current.width = width;
       hiddenRef.current.height = height;
