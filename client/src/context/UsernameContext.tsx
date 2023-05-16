@@ -10,18 +10,18 @@ import {
   useEffect, 
 } from "react";
 
-type UserContextDefaultValue = [ string, Dispatch<SetStateAction<string>> ];
+type UsernameContextDefaultValue = [string, Dispatch<SetStateAction<string>>];
 
-export const UserContext = createContext<UserContextDefaultValue>([
+export const UsernameContext = createContext<UsernameContextDefaultValue>([
   'Guest',
   () => {},
 ]);
 
-interface IUserProviderProps {
+interface IUsernameProviderProps {
   children: ReactNode;
 }
 
-export function UserProvider({ children }: IUserProviderProps) {
+export function UsernameProvider({ children }: IUsernameProviderProps) {
   const [username, setUsername] = useState('Guest');
 
   useEffect(() => {
@@ -33,8 +33,8 @@ export function UserProvider({ children }: IUserProviderProps) {
   }, []);
 
   return (
-    <UserContext.Provider value={[ username, setUsername ]}>
+    <UsernameContext.Provider value={[ username, setUsername ]}>
       {children}
-    </UserContext.Provider>
+    </UsernameContext.Provider>
   );
 } 
