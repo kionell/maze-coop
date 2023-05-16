@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { RoomService } from './room.service';
 import { RoomGateway } from './room.gateway';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  providers: [RoomService, RoomGateway]
+  imports: [RedisModule],
+  providers: [RoomGateway],
 })
 export class RoomModule {}
