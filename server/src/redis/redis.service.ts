@@ -16,7 +16,7 @@ export class RedisService implements CacheStore {
     return await this.cache.set(key, value);
   }
 
-  async del(key: string): Promise<void> {
+  async delete(key: string): Promise<void> {
     return await this.cache.del(key);
   }
 }
