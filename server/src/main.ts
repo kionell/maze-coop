@@ -1,12 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 
 (async function () {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const port = 3000;
+  const app = await NestFactory.create(AppModule);
+  const port = process.env.PORT || 3000;
 
-  app.listen(port, () => {
-    console.log(`Server is running: http://127.0.0.1:${port}/`);
+  app.enableCors();
+
+  app.listen(port, async () => {
+    const url = await app.getUrl();
+
+    console.log(`Server is running at ${url}`);
   });
 })();
