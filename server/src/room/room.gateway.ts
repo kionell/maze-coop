@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -10,11 +11,11 @@ import {
 
 import { CreateRoomDto } from '@common/dto/create-room.dto';
 import { JoinRoomDto } from '@common/dto/join-room.dto';
-import { IRoomMetadata } from '@common/interfaces/room-metadata.interface';
+import { IRoom } from '@common/interfaces/room.interface';
 import { RedisService } from '../redis/redis.service';
 
 @WebSocketGateway({ cors: true })
-export class RoomGateway {
+export class RoomGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   io: Server;
 
@@ -25,14 +26,33 @@ export class RoomGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() message: CreateRoomDto,
   ) {
-    this.redisService.set<IRoomMetadata>(socket.id, {
-      ...message,
-      roomId: socket.id,
-    });
+    const hasOwnRoom = await this.redisService.has(message.hostId);
 
-    console.log(`Created room: ${message.hostname}`);
+    if (hasOwnRoom) {
+      return socket.emit('multiple-rooms-error', {
+        error: 'You are already in a different room!',
+      });
+    }
 
-    socket.broadcast.emit('room-created');
+    const room: IRoom = {
+      id: message.roomId,
+      hostId: message.hostId,
+      hostname: message.hostname,
+      createdAt: message.createdAt,
+      members: [
+        {
+          id: message.hostId,
+          username: message.hostname,
+          joinedAt: message.createdAt,
+        },
+      ],
+    };
+
+    await this.redisService.set<IRoom>(room.hostId, room);
+
+    socket.broadcast.emit('room-created', room);
+
+    console.log(`${room.hostname} created a new room: ${room.id}`);
   }
 
   @SubscribeMessage('join-room')
@@ -40,69 +60,73 @@ export class RoomGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() message: JoinRoomDto,
   ) {
-    const targetRoomId = message.roomId.toString();
+    const room = await this.redisService.get<IRoom>(message.roomId);
 
-    if (!this.io.sockets.adapter.rooms.has(targetRoomId)) {
-      socket.emit('room-not-found-error', {
+    if (!room) {
+      return socket.emit('room-not-found-error', {
         error: 'This room does not exist!',
       });
-
-      return;
     }
 
-    if (socket.rooms.size > 1) {
-      socket.emit('multiple-rooms-error', {
+    // To simplify things the user and room ID will be taken from the socket ID.
+    const hasOwnRoom = await this.redisService.has(message.userId);
+
+    if (hasOwnRoom) {
+      return socket.emit('multiple-rooms-error', {
         error: 'You are already in a different room!',
       });
-
-      return;
     }
 
-    await socket.join(targetRoomId);
+    room.members.push({
+      id: message.userId,
+      username: message.username,
+      joinedAt: message.joinedAt,
+    });
 
-    console.log(`Joined room: ${message.username}`);
+    room.members.forEach((member) => {
+      this.redisService.set<IRoom>(member.id, room);
+    });
 
-    socket.broadcast.emit('room-joined', message);
+    await socket.leave(socket.id);
+    await socket.join(room.id);
+
+    this.io.emit('room-joined', room);
+
+    console.log(`${message.username} joined to the ${room.hostname}'s room`);
   }
 
   @SubscribeMessage('browse-rooms')
   async browse(@ConnectedSocket() socket: Socket) {
-    const availableRooms: IRoomMetadata[] = [];
+    const socketRooms = [...this.io.sockets.adapter.rooms];
 
-    const addOrIgnoreRoom = async (members: Set<string>, roomId: string) => {
-      // Skip rooms made by the same user.
-      if (socket.id === roomId) return;
+    try {
+      const promises = socketRooms
+        // Skip rooms made by the same user and full rooms.
+        .filter(([id, members]) => socket.id !== id && members.size <= 1)
+        .map(([id]) => this.redisService.get<IRoom>(id));
 
-      // Skip rooms the user is already in.
-      if (members.has(socket.id)) return;
+      const result = await Promise.all(promises);
+      const availableRooms = result.filter((x) => x);
 
-      // Skip full rooms.
-      if (members.size >= 2) return;
-
-      const metadata = await this.redisService.get<IRoomMetadata>(roomId);
-
-      if (metadata) {
-        availableRooms.push({
-          ...metadata,
-          roomId: socket.id,
-        });
-      }
-    };
-
-    const promises = [];
-
-    this.io.sockets.adapter.rooms.forEach((members, roomId) => {
-      promises.push(addOrIgnoreRoom(members, roomId));
-    });
-
-    Promise.all(promises)
-      .then(() => {
-        socket.emit('rooms-updated', availableRooms);
-      })
-      .catch(() => {
-        socket.emit('rooms-update-error', {
-          error: 'Failed to update rooms!',
-        });
+      socket.emit('rooms-updated', availableRooms);
+    } catch {
+      socket.emit('rooms-update-error', {
+        error: 'Failed to update rooms!',
       });
+    }
+  }
+
+  async handleDisconnect(socket: Socket) {
+    this.io.sockets.adapter.rooms.delete(socket.id);
+
+    const room = await this.redisService.get<IRoom>(socket.id);
+
+    if (room) {
+      room.members.forEach((member) => {
+        this.redisService.delete(member.id);
+      });
+    }
+
+    this.io.emit('room-disbanded');
   }
 }
