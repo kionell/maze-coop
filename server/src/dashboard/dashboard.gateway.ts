@@ -1,9 +1,7 @@
-import { SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { WebSocketGateway } from '@nestjs/websockets';
+import { DashboardService } from './dashboard.service';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class DashboardGateway {
-  @SubscribeMessage('message')
-  handleMessage(client: any, payload: any): string {
-    return 'Hello world!';
-  }
+  constructor(private readonly dashboardService: DashboardService) {}
 }

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { DashboardGateway } from './dashboard.gateway';
 import { DashboardService } from './dashboard.service';
+import { DashboardGateway } from './dashboard.gateway';
 
 @Module({
-  providers: [DashboardGateway, DashboardService]
+  providers: [DashboardGateway, DashboardService],
 })
 export class DashboardModule {}

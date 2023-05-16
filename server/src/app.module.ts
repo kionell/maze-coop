@@ -1,12 +1,22 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 import { GameModule } from './game/game.module';
 import { RoomModule } from './room/room.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ChatModule } from './chat/chat.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
-  imports: [GameModule, RoomModule, DashboardModule],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+    }),
+    GameModule,
+    RoomModule,
+    DashboardModule,
+    ChatModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
