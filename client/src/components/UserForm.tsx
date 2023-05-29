@@ -1,29 +1,19 @@
-import { FormEvent, FormEventHandler, useContext } from "react";
+import { FormEvent, useContext } from "react";
+import { UserContext } from "@context/UserContext";
 import styles from '@styles/UserForm.module.css';
-import { hasCookie, setCookie } from "cookies-next";
-import { UsernameContext } from "@context/UsernameContext";
 
-interface IUserFormProps {
-  onSubmit?: FormEventHandler;
-}
-
-const UserForm: React.FC<IUserFormProps> = ({ onSubmit }) => {
-  const [_, setUsername] = useContext(UsernameContext);
+const UserForm: React.FC = () => {
+  const userState = useContext(UserContext);
   
   const onFormSubmit = (event: FormEvent) => {
     event.preventDefault();
 
-    if (hasCookie('username')) return;
-    
-    const formData = new FormData(event.target as HTMLFormElement);
-    const username = formData.get('username') as string;
+    const form = event.target as HTMLFormElement;
+    const username = new FormData(form).get('username');
 
-    if (!username) return;
-
-    setCookie('username', username);
-    setUsername(username);
-    
-    if (onSubmit) onSubmit(event);
+    if (typeof username === 'string') {
+      userState.set(username);
+    }
   };
 
   return (
