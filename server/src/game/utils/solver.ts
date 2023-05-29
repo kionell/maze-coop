@@ -1,135 +1,79 @@
-enum MazeCellType {
-  Wall,
-  Hole,
-  Solution,
-  Exit,
+import { MazeCellType } from '../enums/MazeCellType';
+import { Maze } from '../types/Maze';
+import { Point } from '../types/Point';
+import { BFS } from './bfs';
+import { findExitPoint } from './maze';
+
+/**
+ * Calculates distance from entry point to exit using BFS algorithm.
+ * @param maze 2D array of maze layout.
+ * @param entry Entry point.
+ * @returns Distance from entry point to exit.
+ */
+export function getDistanceToExit(maze: Maze, entry: Point): number {
+  const exit = findExitPoint(maze);
+
+  let maxDistance = -1;
+
+  for (const { distance } of BFS(maze, entry, exit)) {
+    maxDistance = Math.max(maxDistance, distance);
+  }
+
+  return maxDistance;
 }
 
-export function solveMaze(
-  maze: number[][],
-  startY: number,
-  startX: number,
-): void {
-  // error_check(maze, entrance_y, entrance_x, exitY, exitX);
+/**
+ * Solves the maze using BFS algorithm. Mutates the array.
+ * @param maze 2D array of maze layout.
+ * @param entry Entry point.
+ */
+export function solveMaze(maze: Maze, entry: Point) {
+  const exit = findExitPoint(maze);
 
-  const distances: { x: number; y: number }[] = [];
-
-  let distanceCount = 0;
-
-  distances.push({
-    x: startX,
-    y: startY,
-  });
-
-  let newDistance = true;
-
-  let y = 0;
-  let x = 0;
-
-  const [exitX, exitY] = findExitPoint(maze);
-
-  /* Walk away from the entrace and save their distance (from the entrance). */
-  while (newDistance) {
-    newDistance = false;
-
-    const distanceMax = distances.length;
-
-    distanceCount--;
-
-    // With the for loop, we can walk "parellel".
-    // If there are 2 path, then there'll 2 elements in the mazeor, if there are 3, then 3, etc..
-    for (let i = 0; i < distanceMax; i++) {
-      y = distances[0].y;
-      x = distances[0].x;
-
-      maze[y][x] = distanceCount;
-
-      // If north is a hole, then save.
-      if (y > 0 && isNotVisitedHole(maze[y - 1][x])) {
-        distances.push({ y: y - 1, x });
-        newDistance = true;
-      }
-
-      // If south is a hole, then save.
-      if (y + 1 < maze.length && isNotVisitedHole(maze[y + 1][x])) {
-        distances.push({ y: y + 1, x });
-        newDistance = true;
-      }
-
-      // If west is a hole, then save.
-      if (x > 0 && isNotVisitedHole(maze[y][x - 1])) {
-        distances.push({ y, x: x - 1 });
-        newDistance = true;
-      }
-
-      // If east is a hole, then save.
-      if (x + 1 < maze[0].length && isNotVisitedHole(maze[y][x + 1])) {
-        distances.push({ y, x: x + 1 });
-        newDistance = true;
-      }
-
-      /* Stop at the end. It could run and check every cell in the maze, but it would be waste of time. */
-      if (y === exitY && x === exitX) {
-        newDistance = false;
-        break;
-      }
-
-      distances.shift();
+  for (const { position, distance } of BFS(maze, entry, exit)) {
+    if (position.x !== exit.x || position.y !== exit.y) {
+      maze[position.y][position.x] = -distance;
     }
   }
 
   // Walk back from the exit to the entrance.
-  y = exitY;
-  x = exitX;
-  distanceCount = maze[y][x];
+  let { x, y } = exit;
+  let distance = maze[y][x];
 
   // Loop until we aren't at the beginning.
-  while (distanceCount < 0) {
+  while (distance < 0) {
     // Mark everything as a solution on the way.
     maze[y][x] = MazeCellType.Solution;
+    distance++;
 
-    distanceCount++;
-
-    if (y > 0 && maze[y - 1][x] === distanceCount) {
+    if (y > 0 && maze[y - 1][x] === distance) {
       y--;
-    } else if (y + 1 < maze.length && maze[y + 1][x] === distanceCount) {
+    } else if (y + 1 < maze.length && maze[y + 1][x] === distance) {
       y++;
-    } else if (x > 0 && maze[y][x - 1] === distanceCount) {
+    } else if (x > 0 && maze[y][x - 1] === distance) {
       x--;
-    } else if (x + 1 < maze[0].length && maze[y][x + 1] === distanceCount) {
+    } else if (x + 1 < maze[0].length && maze[y][x + 1] === distance) {
       x++;
     }
   }
 
+  cleanMaze(maze);
+}
+
+/**
+ * Removes temporary values from the maze array.
+ * @param maze 2D array of maze layout.
+ */
+function cleanMaze(maze: Maze): void {
   // Clean up, the output shall only contain walls, holes or solutions.
   for (let y = maze.length - 1; y >= 0; y--) {
     for (let x = maze[y].length - 1; x >= 0; x--) {
-      if (
-        maze[y][x] !== MazeCellType.Wall &&
-        maze[y][x] !== MazeCellType.Solution
-      ) {
+      const isWall = maze[y][x] === MazeCellType.Wall;
+      const isSolution = maze[y][x] !== MazeCellType.Solution;
+
+      if (!isWall && !isSolution) {
         maze[y][x] = MazeCellType.Hole;
       }
     }
   }
-}
-
-function findExitPoint(maze: number[][]): [number, number] {
-  let exitX = -1;
-  let exitY = -1;
-
-  for (let y = maze.length - 1; y >= 0; y--) {
-    for (let x = maze[y].length - 1; x >= 0; x--) {
-      if (maze[y][x] === 3) {
-        exitX = x;
-        exitY = y;
-      }
-    }
-  }
-
-  return [exitX, exitY];
-}
-
-function isNotVisitedHole(value: number): boolean {
-  return value > 0 && (value & MazeCellType.Hole) > 0;
 }
