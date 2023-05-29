@@ -1,105 +1,104 @@
-import { io, Socket } from 'socket.io-client';
-import { JoinRoomDto } from '@common/dto/join-room.dto'
 import { CreateRoomDto } from '@common/dto/create-room.dto'
+import { JoinRoomDto } from '@common/dto/join-room.dto'
+import { ErrorMessageDto } from '@common/dto/error-message.dto'
+import { IRoom } from '@common/interfaces/room.interface';
+import { SocketService } from './SocketService';
 
-class RoomService {
-  socket: Socket | null = null;
+type ErrorEventListener = (message: ErrorMessageDto) => void;
+type RoomEventListener = (room: IRoom) => void;
+type RoomsUpdateEventListener = (rooms: IRoom[]) => void;
 
-  get isConnected(): boolean {
-    return this.socket?.connected ?? false;
-  }
+export class RoomService extends SocketService {
+  constructor() {
+    super('/dashboard');
 
-  connect(uri: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.socket = io(uri);
+    this.socket.once('connect', () => this.browse());
 
-      if (!this.socket) return reject();
-
-      this.socket.on('room-created', () => this.onRoomCreate());
-      this.socket.on('room-joined', () => this.onRoomJoin());
-      this.socket.on('room-disbanded', () => this.onRoomDisband());
-      this.socket.on('connect-error', this.onConnectError);
-      this.socket.on('multiple-rooms-error', this.onMultipleRoomJoin);
-
-      this.socket.once('connect', () => {
-        resolve();
-      });
-    });
-  }
-
-  async disconnect(): Promise<void> {
-    return new Promise((resolve) => {
-      if (!this.socket || this.socket.disconnected) return;
-    
-      this.socket.removeAllListeners('room-created');
-      this.socket.removeAllListeners('room-joined');
-      this.socket.removeAllListeners('room-disbanded');
-      this.socket.removeAllListeners('connect-error');
-
-      this.socket.once('disconnect', () => {
-        this.onDisconnect();
-        resolve();
-      });
+    this.socket.on('room_created', (room: IRoom) => {
+      console.log(`${room.hostname} created a new room: ${room.id}`);
       
-      this.socket.disconnect();
+      this.browse();
+    });
+
+    this.socket.on('room_joined', (room: IRoom) => {
+      console.log(`${room.username} (${room.userId}) joined to ${room.hostname}'s (${room.id}) room`);
+      
+      this.browse();
+    });
+
+    this.socket.on('room_disbanded', (room: IRoom) => {    
+      console.log(`${room.hostname}'s (${room.id}) room was disbanded!`);
+
+      this.browse();
+    });
+
+    this.socket.on('multiple_rooms_error', (message: ErrorMessageDto) => {
+      console.log(message.error);
     });
   }
 
   async create(dto: CreateRoomDto): Promise<void> {
-    if (!this.socket) return;
-
-    this.socket.emit('create-room', dto);
+    this.socket.emit('create_room', dto);
   }
 
   async join(dto: JoinRoomDto): Promise<void> {
-    if (!this.socket) return;
-
-    this.socket.emit('join-room', dto);
+    this.socket.emit('join_room', dto);
   }
 
-  async disband(): Promise<void> {
-    if (!this.socket) return;
-
-    this.socket.emit('disband-room', this.socket.id);
+  async leave(): Promise<void> {
+    this.socket.emit('leave_room');
   }
 
   async browse(): Promise<void> {
-    if (!this.socket) return;
-
-    this.socket.emit('browse-rooms');
+    this.socket.emit('browse_rooms');
   }
 
-  onRoomCreate(): void {
-    console.log('A new room was created');
-
-    this.browse();
+  onRoomCreated(listener: RoomEventListener): void {
+    this.socket.on('room_created', listener);
   }
 
-  onRoomJoin(): void {
-    console.log('One of the users joined a room');
-
-    this.browse();
+  onRoomJoined(listener: RoomEventListener): void {
+    this.socket.on('room_joined', listener);
   }
 
-  onRoomDisband(): void {
-    console.log('A room was disbanded');
-
-    this.browse();
+  onRoomDisbanded(listener: RoomEventListener): void {
+    this.socket.on('room_disbanded', listener);
   }
 
-  onMultipleRoomJoin(message: { error: string }): void {
-    console.warn(message.error);
+  onRoomsUpdated(listener: RoomsUpdateEventListener): void {
+    this.socket.on('rooms_updated', listener);
   }
 
-  onConnectError(err: unknown): void {
-    console.log('Connection error: ', err);
+  onMultipleRoomsJoined(listener: ErrorEventListener): void {
+    this.socket.on('multiple_rooms_error', listener);
   }
 
-  onDisconnect(): void {
-    console.log('Disconnected!');
+  offRoomCreated(listener?: RoomEventListener): void {
+    this.socket.off('room_created', listener);
+  }
 
-    this.disband();
-    this.browse();
+  offRoomJoined(listener?: RoomEventListener): void {
+    this.socket.off('room_joined', listener);
+  }
+
+  offRoomDisbanded(listener?: RoomEventListener): void {
+    this.socket.off('room_disbanded', listener);
+  }
+
+  offRoomsUpdated(listener?: RoomsUpdateEventListener): void {
+    this.socket.off('rooms_updated', listener);
+  }
+
+  offMultipleRoomsJoined(listener?: ErrorEventListener): void {
+    this.socket.off('multiple_rooms_error', listener);
+  }
+
+  removeAllListeners(): void {
+    this.offRoomCreated();
+    this.offRoomJoined();
+    this.offRoomDisbanded();
+    this.offRoomsUpdated();
+    this.offMultipleRoomsJoined();
   }
 }
 

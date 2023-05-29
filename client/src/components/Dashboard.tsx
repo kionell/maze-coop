@@ -1,36 +1,39 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { roomService } from '@services/RoomService';
+import { IRoom } from '@common/interfaces/room.interface';
+import { UserContext } from '@context/UserContext';
+import { GameContext } from '@context/GameContext';
 import styles from '@styles/Dashboard.module.css';
 import Greeting from './Greeting';
-import Room from './Room';
-import { IRoom } from '@common/interfaces/room.interface';
+import DashboardRoom from './DashboardRoom';
 
-interface IDashboardProps {}
-
-const Dashboard: React.FC<IDashboardProps> = ({}: IDashboardProps) => {
+const Dashboard: React.FC = () => {
   const [rooms, setRooms] = useState<IRoom[]>([]);
 
+  const userState = useContext(UserContext);
+  const playingState = useContext(GameContext);
+
+  const onRoomCreateClick = () => {
+    roomService.create({
+      roomId: userState.value?.id as number,
+      hostId: userState.value?.id as number,
+      hostname: userState.value?.username as string,
+      createdAt: Date.now(),
+    });
+
+    playingState.update(true);
+  };
+
   useEffect(() => {
-    const onRoomUpdate = (availableRooms: IRoom[]) => {
-      console.log('Browsed rooms:');
-      console.log(availableRooms);
-      setRooms(availableRooms);
-    };
+    roomService.onRoomsUpdated((rooms: IRoom[]) => {
+      console.log(rooms);
+      setRooms(rooms);
+    });
 
-    async function connect() {
-      await roomService.connect('ws://127.0.0.1:3000');
-      await roomService.browse();
-
-      roomService.socket?.on('rooms-updated', onRoomUpdate);
-    }
-
-    connect();
+    roomService.connect();
 
     return () => {
-      roomService.socket?.off('rooms-updated', onRoomUpdate);
-      roomService.disconnect();
+      roomService.removeAllListeners();
     };
   }, []);
   
@@ -39,9 +42,10 @@ const Dashboard: React.FC<IDashboardProps> = ({}: IDashboardProps) => {
       <Greeting />
       {
         rooms.map((room) => {
-          return <Room {...room} key={room.id} />;
+          return <DashboardRoom {...room} key={room.id} />;
         })
       }
+      <button onClick={onRoomCreateClick}>Create Room</button>
     </div>
   );
 }

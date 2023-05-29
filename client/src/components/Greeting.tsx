@@ -1,12 +1,10 @@
-'use client';
-
 import { useContext } from "react";
-import { UsernameContext } from "@context/UsernameContext";
+import { UserContext } from "@context/UserContext";
 
 const Greeting: React.FC = () => {  
-  const [username] = useContext(UsernameContext);
+  const userState = useContext(UserContext);
   
-  return <h1>Hello, {username}</h1>;
+  return <h1>Hello, {userState.value?.username}</h1>;
 }
 
 export default Greeting;
