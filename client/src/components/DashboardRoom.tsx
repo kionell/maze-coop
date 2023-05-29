@@ -1,23 +1,25 @@
 import { useContext } from "react";
 import { IRoom } from '@common/interfaces/room.interface';
 import { roomService } from "@services/RoomService";
-import { UsernameContext } from "@context/UsernameContext";
+import { UserContext } from "@context/UserContext";
+import { GameContext } from "@context/GameContext";
 import styles from '@styles/Room.module.css';
 
-interface IRoomProps extends IRoom {}
+type IDashboardRoomProps = IRoom
 
-const Room: React.FC<IRoomProps> = (props) => {
-  const [username] = useContext(UsernameContext);
-  
+const DashboardRoom: React.FC<IDashboardRoomProps> = (props) => {
+  const userState = useContext(UserContext);
+  const playingState = useContext(GameContext);
+
   const onJoinClick = () => {
-    if (!roomService.isConnected || !roomService.socket) return;
-
     roomService.join({
       joinedAt: Date.now(),
       roomId: props.id,
-      userId: roomService.socket.id,
-      username,
+      userId: userState.value?.id as number,
+      username: userState.value?.username as string,
     });
+
+    playingState.update(true);
   };
   
   return (
@@ -28,4 +30,4 @@ const Room: React.FC<IRoomProps> = (props) => {
   );
 }
 
-export default Room;
+export default DashboardRoom;
