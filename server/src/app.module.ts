@@ -7,6 +7,7 @@ import { GameModule } from './game/game.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ChatModule } from './chat/chat.module';
 import { RedisModule } from './redis/redis.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RedisModule } from './redis/redis.module';
     }),
     GameModule,
     DashboardModule,
+    UserModule,
     ChatModule,
     RedisModule,
   ],
