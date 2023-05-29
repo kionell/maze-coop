@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameModule } from './game/game.module';
-import { RoomModule } from './room/room.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { ChatModule } from './chat/chat.module';
 import { RedisModule } from './redis/redis.module';
 
@@ -26,7 +26,7 @@ import { RedisModule } from './redis/redis.module';
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
     }),
     GameModule,
-    RoomModule,
+    DashboardModule,
     ChatModule,
     RedisModule,
   ],
