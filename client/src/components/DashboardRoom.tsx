@@ -12,14 +12,16 @@ const DashboardRoom: React.FC<IDashboardRoomProps> = (props) => {
   const playingState = useContext(GameContext);
 
   const onJoinClick = () => {
+    if (!userState.value) return;
+
     roomService.join({
       joinedAt: Date.now(),
       roomId: props.id,
-      userId: userState.value?.id as string,
-      username: userState.value?.username as string,
+      userId: userState.value.id,
+      username: userState.value.username,
     });
 
-    playingState.update(true);
+    playingState.set(true);
   };
   
   return (
