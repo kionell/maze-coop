@@ -14,10 +14,12 @@ const Dashboard: React.FC = () => {
   const playingState = useContext(GameContext);
 
   const onRoomCreateClick = () => {
+    if (!userState.value) return;
+
     roomService.create({
-      roomId: userState.value?.id as string,
-      hostId: userState.value?.id as string,
-      hostname: userState.value?.username as string,
+      roomId: userState.value.id,
+      hostId: userState.value.id,
+      hostname: userState.value.username,
       createdAt: Date.now(),
     });
 
