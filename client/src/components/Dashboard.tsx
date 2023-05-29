@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
       createdAt: Date.now(),
     });
 
-    playingState.update(true);
+    playingState.set(true);
   };
 
   useEffect(() => {

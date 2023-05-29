@@ -6,12 +6,12 @@ import {
 
 type GameContextDefaultValue = {
   value: boolean;
-  update: (isPlaying: boolean) => void;
+  set: (isPlaying: boolean) => void;
 };
 
 export const GameContext = createContext<GameContextDefaultValue>({
   value: false,
-  update: () => {},
+  set: () => {},
 });
 
 interface IGameProviderProps {
@@ -22,7 +22,7 @@ export function GameProvider({ children }: IGameProviderProps) {
   const [state, setState] = useState(false);
 
   return (
-    <GameContext.Provider value={{ value: state, update: setState }}>
+    <GameContext.Provider value={{ value: state, set: setState }}>
       {children}
     </GameContext.Provider>
   );
