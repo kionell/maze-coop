@@ -15,8 +15,8 @@ const Dashboard: React.FC = () => {
 
   const onRoomCreateClick = () => {
     roomService.create({
-      roomId: userState.value?.id as number,
-      hostId: userState.value?.id as number,
+      roomId: userState.value?.id as string,
+      hostId: userState.value?.id as string,
       hostname: userState.value?.username as string,
       createdAt: Date.now(),
     });

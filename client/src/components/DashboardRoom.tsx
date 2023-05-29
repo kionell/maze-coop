@@ -15,7 +15,7 @@ const DashboardRoom: React.FC<IDashboardRoomProps> = (props) => {
     roomService.join({
       joinedAt: Date.now(),
       roomId: props.id,
-      userId: userState.value?.id as number,
+      userId: userState.value?.id as string,
       username: userState.value?.username as string,
     });
 
