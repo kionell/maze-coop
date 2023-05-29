@@ -7,8 +7,6 @@ import { RedisService } from './redis.service';
   imports: [
     CacheModule.registerAsync({
       useFactory: async () => {
-        console.log(process.env.REDIS_URI);
-
         return {
           store: await redisStore({
             url: process.env.REDIS_URI,
