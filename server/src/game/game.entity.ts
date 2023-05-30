@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   JoinTable,
@@ -18,6 +19,9 @@ export class Game extends BaseEntity {
   @ManyToOne(() => User, (user) => user.games)
   @JoinColumn({ name: 'host_id' })
   host: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @ManyToMany(() => User, (user) => user.games)
   @JoinTable({
