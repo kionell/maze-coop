@@ -1,7 +1,7 @@
 import { FormEvent } from 'react';
 import { useContext, useEffect, useState } from "react";
 import { GameContext } from "@context/GameContext";
-import { roomService } from "@services/RoomService";
+import { gameService } from "@services/GameService";
 import Maze from "./Maze";
 import styles from '@styles/Game.module.css';
 // import { useLeavePageConfirm } from "@hooks/useLeavePageConfirm";
@@ -43,15 +43,13 @@ export default function Game() {
   };
 
   useEffect(() => {
-    const onRoomDisband = () => {
-      playingState.update(false);
-      roomService.leave();
-    };
-
-    roomService.onRoomDisbanded(onRoomDisband);
+    gameService.onCancel(() => {
+      playingState.set(false);
+      gameService.leave();
+    });
 
     return () => {
-      roomService.offRoomDisbanded(onRoomDisband);
+      gameService.offCancel();
     }
   }, [playingState]);
 

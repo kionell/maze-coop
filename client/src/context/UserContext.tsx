@@ -27,15 +27,16 @@ export function UserProvider({ children }: IUserProviderProps) {
 
   const setUser = (username: string | null) => {
     if (username === null) {
-      userService.onUserLogout(() => {
+      userService.onLogout(() => {
+        userService.reconnect();
         setState(null);
       });
       
       userService.logout();
     }
     else { 
-      userService.onUserCreated((user) => {
-        setState(user);
+      userService.onCreate(({ data, error }) => {
+        if (!error) setState(data);
       });
       
       userService.create(username);
@@ -46,11 +47,11 @@ export function UserProvider({ children }: IUserProviderProps) {
     async function initUser() {
       await userService.connect();
       
-      userService.onUserFound((user: IUser) => {
-        setState(user);
+      userService.onFind(({ data, error }) => {
+        if (!error) setState(data);
       });
 
-      userService.onUserNotFound(() => {
+      userService.onNotFound(() => {
         setState(null);
       })
 

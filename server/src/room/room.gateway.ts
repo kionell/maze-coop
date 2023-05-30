@@ -20,48 +20,62 @@ class RoomGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage('create_room')
   async createRoom(@ConnectedSocket() socket: Socket) {
-    const room = await this.roomService.saveRoom(socket);
+    let data = null;
+    let error = null;
 
-    socket.broadcast.emit('room_created', room);
-
-    console.log(`${room.hostname} created a new room: ${room.hostId}`);
+    try {
+      data = await this.roomService.saveRoom(socket);
+    } catch (err: any) {
+      error = 'Failed to create a room';
+    } finally {
+      socket.broadcast.emit('room_create', { data, error });
+    }
   }
 
   @SubscribeMessage('join_room')
   async joinRoom(@ConnectedSocket() socket: Socket, @MessageBody() hostId: string) {
-    const room = await this.roomService.getRoomById(hostId);
+    let data = null;
+    let error = null;
 
-    if (!room) return;
+    try {
+      const room = await this.roomService.getRoomById(hostId);
 
-    await this.roomService.addUserToRoom(socket, room);
-    await socket.join(room.hostId);
-
-    this.io.emit('room_joined', room);
-
-    const userTag = `${room.username} (${room.userId})`;
-    const hostTag = `${room.hostname} (${room.hostId})`;
-
-    console.log(`${userTag} joined to ${hostTag} room`);
+      data = await this.roomService.addUserToRoom(socket, room);
+    } catch (err: any) {
+      error = 'Failed to join a room';
+    } finally {
+      this.io.emit('room_join', { data, error });
+    }
   }
 
   @SubscribeMessage('leave_room')
   async leaveRoom(@ConnectedSocket() socket: Socket) {
-    const room = await this.roomService.getRoomBySocket(socket);
+    let data = null;
+    let error = null;
 
-    if (!room) return;
+    try {
+      const room = await this.roomService.getRoomBySocket(socket);
 
-    await this.roomService.removeUserFromRoom(socket, room);
-    await socket.leave(room.hostId);
-
-    this.io.emit('room_disbanded', room);
-    console.log(`${room.hostname}'s (${room.hostId}) room was disbanded!`);
+      data = await this.roomService.removeUserFromRoom(socket, room);
+    } catch (err: any) {
+      error = 'Failed to leave a room';
+    } finally {
+      this.io.emit('room_disband', { data, error });
+    }
   }
 
   @SubscribeMessage('browse_rooms')
   async browseRooms(@ConnectedSocket() socket: Socket) {
-    const availableRooms = await this.roomService.getAvailableRooms(socket);
+    let data = null;
+    let error = null;
 
-    socket.emit('rooms_updated', availableRooms);
+    try {
+      data = await this.roomService.getAvailableRooms(socket);
+    } catch (err: any) {
+      error = 'Failed to get available rooms';
+    } finally {
+      socket.emit('rooms_update', { data, error });
+    }
   }
 
   async handleDisconnect(socket: Socket) {

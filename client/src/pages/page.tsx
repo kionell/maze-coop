@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { UserContext } from "@context/UserContext";
 import { GameContext } from "@context/GameContext";
-import UsernameForm from "@components/UserForm";
+import UserForm from "@components/UserForm";
 import Game from "@components/Game";
 import Dashboard from "@components/Dashboard";
 
@@ -17,5 +17,5 @@ export default function Page() {
     return <Dashboard />
   }
 
-  return <UsernameForm />;
+  return <UserForm />;
 }

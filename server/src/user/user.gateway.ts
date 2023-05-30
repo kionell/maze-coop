@@ -18,28 +18,29 @@ class UserGateway {
 
   @SubscribeMessage('create_user')
   async createUser(@ConnectedSocket() socket: Socket, @MessageBody() username: string) {
-    try {
-      const user = await this.userService.createUser(socket, username);
+    let data = null;
+    let error = null;
 
-      socket.emit('user_created', user);
-      console.log(`A new user created in the database: ${user.id} | ${user.username}`);
+    try {
+      data = await this.userService.createUser(socket, username);
     } catch {
-      socket.emit('user_create_error', {
-        error: 'Failed to create a user!',
-      });
+      error = 'Failed to create a user';
+    } finally {
+      socket.emit('user_create', { data, error });
     }
   }
 
   @SubscribeMessage('find_user')
   async findUser(@ConnectedSocket() socket: Socket) {
-    try {
-      const user = await this.userService.findUser(socket);
+    let data = null;
+    let error = null;
 
-      socket.emit('user_found', user);
+    try {
+      data = await this.userService.findUser(socket);
     } catch {
-      socket.emit('user_not_found_error', {
-        error: 'User was not found!',
-      });
+      error = 'User was not found';
+    } finally {
+      socket.emit('user_find', { data, error });
     }
   }
 

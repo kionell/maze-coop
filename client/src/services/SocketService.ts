@@ -14,24 +14,21 @@ export abstract class SocketService {
       closeOnBeforeunload: false,
       autoConnect: false,
     });
+
+    this.socket.on('disconnect', () => this.onDisconnect());
+    this.socket.on('connect', () => this.onConnect());
+    this.socket.on('connect_error', (err) => this.onConnectError(err));
+
   }
 
-  connect(): Promise<void> {
+  async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.socket.connected) {
         return resolve();
       }
 
-      this.socket.once('connect_error', (err) => {
-        this.onConnectError(err);
-        reject();
-      });
-        
-      this.socket.once('connect', () => {
-        this.onConnect();
-        resolve();
-      });
-
+      this.socket.once('connect_error', () => reject());
+      this.socket.once('connect', () => resolve());
       this.socket.connect();
     });
   }
@@ -42,13 +39,14 @@ export abstract class SocketService {
         return resolve();
       }
 
-      this.socket.once('disconnect', () => {
-        this.onDisconnect();
-        resolve();
-      });
-      
+      this.socket.once('disconnect', () => resolve());
       this.socket.disconnect();
     });
+  }
+
+  async reconnect(): Promise<void> {
+    await this.disconnect();
+    await this.connect();
   }
 
   onConnectError(err: unknown): void {

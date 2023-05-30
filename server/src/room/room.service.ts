@@ -37,14 +37,20 @@ export class RoomService {
     return room;
   }
 
-  async getRoomBySocket(socket: Socket): Promise<IRoom | null> {
+  async getRoomBySocket(socket: Socket): Promise<IRoom> {
     const user = await this.userService.findUser(socket);
 
-    return await this.getRoomById(user.id);
+    return this.getRoomById(user.id);
   }
 
-  async getRoomById(id: string): Promise<IRoom | null> {
-    return await this.redisService.get<IRoom>(id);
+  async getRoomById(id: string): Promise<IRoom> {
+    const room = await this.redisService.get<IRoom>(id);
+
+    if (!room) {
+      throw new Error('Room was not found!');
+    }
+
+    return room;
   }
 
   async addUserToRoom(socket: Socket, room: IRoom): Promise<IRoom> {
@@ -66,6 +72,8 @@ export class RoomService {
 
     this.redisService.set(room.userId, room);
 
+    await socket.join(room.hostId);
+
     return room;
   }
 
@@ -83,6 +91,8 @@ export class RoomService {
     } else {
       this.redisService.set(room.hostId, room);
     }
+
+    await socket.leave(room.hostId);
 
     return room;
   }

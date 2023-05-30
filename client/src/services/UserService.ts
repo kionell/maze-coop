@@ -1,7 +1,8 @@
 import { IUser } from '@common/interfaces/user.interface';
+import { WebsocketMessageDto } from '@common/dto/websocket-message.dto';
 import { SocketService } from './SocketService';
 
-type UserEventListener = (user: IUser) => void;
+type UserEventListener = (message: WebsocketMessageDto<IUser>) => void;
 
 export class UserService extends SocketService {
   constructor() {
@@ -9,54 +10,60 @@ export class UserService extends SocketService {
   }
 
   async create(username: string): Promise<void> {
+    await this.connect();
+
     this.socket.emit('create_user', username);
   }
 
   async find(): Promise<void> {
+    await this.connect();
+
     this.socket.emit('find_user');
   }
 
   async logout(): Promise<void> {
+    await this.connect();
+
     this.socket.emit('logout_user');
   }
 
-  onUserCreated(listener: UserEventListener): void {
+  onCreate(listener: UserEventListener): void {
     this.socket.on('user_created', listener);
   }
 
-  onUserFound(listener: UserEventListener): void {
+  onFind(listener: UserEventListener): void {
     this.socket.on('user_found', listener);
   }
 
-  onUserNotFound(listener: UserEventListener): void {
+  onNotFound(listener: UserEventListener): void {
     this.socket.on('user_not_found_error', listener);
   }
 
-  onUserLogout(listener: UserEventListener): void {
+  onLogout(listener: UserEventListener): void {
     this.socket.on('user_logout', listener);
   }
 
-  offUserCreated(listener?: UserEventListener): void {
+  offCreate(listener?: UserEventListener): void {
     this.socket.off('user_created', listener);
   }
 
-  offUserFound(listener?: UserEventListener): void {
+  offFind(listener?: UserEventListener): void {
     this.socket.off('user_found', listener);
   }
 
-  offUserNotFound(listener?: UserEventListener): void {
+  offNotFound(listener?: UserEventListener): void {
     this.socket.off('user_not_found_error', listener);
   }
 
-  offUserLogout(listener?: UserEventListener): void {
+  offLogout(listener?: UserEventListener): void {
     this.socket.off('user_logout', listener);
   }
 
   removeAllListeners(): void {
-    this.offUserCreated();
-    this.offUserFound();
-    this.offUserNotFound();
-    this.offUserLogout();
+    this.offCreate();
+    this.offFind();
+    this.offNotFound();
+    this.offLogout();
   }
 }
 
