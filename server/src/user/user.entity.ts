@@ -1,6 +1,7 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   JoinTable,
@@ -19,6 +20,9 @@ export class User extends BaseEntity {
 
   @Column()
   username: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @ManyToMany(() => Game, (game) => game.members)
   @JoinTable({
