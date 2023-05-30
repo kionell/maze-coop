@@ -4,7 +4,7 @@ import JoinGameButton from "./JoinGameButton";
 
 const WaitingListEntry: React.FC<IGame> = (props) => {
   return (
-    <div className={styles.room_container}>
+    <div className={styles.entry_container}>
       <span>{props.hostname} {new Date(props.createdAt).toString()}</span>
       <JoinGameButton hostId={props.hostId} />
     </div>

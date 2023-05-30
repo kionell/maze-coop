@@ -19,7 +19,10 @@ export class BrowserService {
 
     return games.filter(({ hostId, members }) => {
       // Skip games made by the same user and full games.
-      return user.id !== hostId && members.length < this.gameService.MAX_USERS_PER_ROOM;
+      const sameUser = user.id === hostId;
+      const tooManyPlayers = members.length >= this.gameService.MAX_PLAYERS;
+
+      return !sameUser && !tooManyPlayers;
     });
   }
 }
