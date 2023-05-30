@@ -2,9 +2,10 @@ import {
   BaseEntity,
   Column,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
-  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -31,9 +32,9 @@ export class User extends BaseEntity {
   })
   games: Game[];
 
-  @OneToMany(() => Session, (session) => session.user, {
-    onUpdate: 'CASCADE',
+  @OneToOne(() => Session, (session) => session.user.id, {
     onDelete: 'CASCADE',
   })
-  sessions: Session[];
+  @JoinColumn({ name: 'session_id' })
+  session: Session;
 }
