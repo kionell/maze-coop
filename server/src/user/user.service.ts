@@ -3,26 +3,31 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { Session } from '../session/session.entity';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
 
     @InjectRepository(Session)
-    private sessionRepository: Repository<Session>,
+    private readonly sessionRepository: Repository<Session>,
   ) {}
 
-  async createUser(sessionID: string, username: string): Promise<User> {
+  async createUser(socket: Socket, username: string): Promise<User> {
+    if (!socket.request.session) {
+      throw new Error('Session is not found!');
+    }
+
     const session = await this.sessionRepository.findOneBy({
-      id: sessionID,
+      id: socket.request.sessionID,
     });
 
     const user = this.userRepository.create({
-      sessions: [session],
       games: [],
       username,
+      session,
     });
 
     await this.userRepository.insert(user);
@@ -35,10 +40,14 @@ export class UserService {
     return user;
   }
 
-  async findUser(sessionID: string): Promise<User | null> {
+  async findUser(socket: Socket): Promise<User | null> {
+    if (!socket.request.session) {
+      throw new Error('Session is not found!');
+    }
+
     const session = await this.sessionRepository.findOne({
       where: {
-        id: sessionID,
+        id: socket.request.sessionID,
       },
       relations: ['user'],
     });
@@ -47,8 +56,14 @@ export class UserService {
       return null;
     }
 
-    return this.userRepository.findOneBy({
+    const user = await this.userRepository.findOneBy({
       id: session.user.id,
     });
+
+    if (!user) {
+      throw new Error('User is not found!');
+    }
+
+    return user;
   }
 }
