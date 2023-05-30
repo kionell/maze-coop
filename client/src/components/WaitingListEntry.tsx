@@ -1,10 +1,8 @@
-import { IRoom } from '@common/interfaces/room.interface';
+import { IGame } from '@common/interfaces/game.interface';
 import styles from '@styles/Room.module.css';
 import JoinGameButton from "./JoinGameButton";
 
-type IDashboardRoomProps = IRoom
-
-const DashboardRoom: React.FC<IDashboardRoomProps> = (props) => {
+const WaitingListEntry: React.FC<IGame> = (props) => {
   return (
     <div className={styles.room_container}>
       <span>{props.hostname} {new Date(props.createdAt).toString()}</span>
@@ -13,4 +11,4 @@ const DashboardRoom: React.FC<IDashboardRoomProps> = (props) => {
   );
 }
 
-export default DashboardRoom;
+export default WaitingListEntry;

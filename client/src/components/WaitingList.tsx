@@ -1,29 +1,29 @@
 import { useEffect, useState } from 'react';
-import { roomService } from '@services/RoomService';
-import { IRoom } from '@common/interfaces/room.interface';
+import { browserService } from '@services/BrowserService';
+import { IGame } from '@common/interfaces/game.interface';
 import styles from '@styles/Dashboard.module.css';
-import WaitingRoom from './WaitingRoom';
+import WaitingListEntry from './WaitingListEntry';
 
 const WaitingList: React.FC = () => {
-  const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [games, setGames] = useState<IGame[]>([]);
 
   useEffect(() => {
-    roomService.onUpdate(({ error, data }) => {
-      if (!error) setRooms(data);
+    browserService.onUpdate(({ error, data }) => {
+      if (!error) setGames(data);
     });
 
-    roomService.connect();
+    browserService.connect();
 
     return () => {
-      roomService.offUpdate();
+      browserService.offUpdate();
     };
   }, []);
   
   return (
     <div className={styles.dashboard_container}>
       {
-        rooms.map((room) => {
-          return <WaitingRoom {...room} key={room.hostId} />;
+        games.map((game) => {
+          return <WaitingListEntry {...game} key={game.hostId} />;
         })
       }
     </div>

@@ -48,12 +48,8 @@ export function UserProvider({ children }: IUserProviderProps) {
       await userService.connect();
       
       userService.onFind(({ data, error }) => {
-        if (!error) setState(data);
+        setState(error ? null : data);
       });
-
-      userService.onNotFound(() => {
-        setState(null);
-      })
 
       userService.find();
     }

@@ -28,15 +28,11 @@ export class UserService extends SocketService {
   }
 
   onCreate(listener: UserEventListener): void {
-    this.socket.on('user_created', listener);
+    this.socket.on('user_create', listener);
   }
 
   onFind(listener: UserEventListener): void {
-    this.socket.on('user_found', listener);
-  }
-
-  onNotFound(listener: UserEventListener): void {
-    this.socket.on('user_not_found_error', listener);
+    this.socket.on('user_find', listener);
   }
 
   onLogout(listener: UserEventListener): void {
@@ -44,15 +40,11 @@ export class UserService extends SocketService {
   }
 
   offCreate(listener?: UserEventListener): void {
-    this.socket.off('user_created', listener);
+    this.socket.off('user_create', listener);
   }
 
   offFind(listener?: UserEventListener): void {
-    this.socket.off('user_found', listener);
-  }
-
-  offNotFound(listener?: UserEventListener): void {
-    this.socket.off('user_not_found_error', listener);
+    this.socket.off('user_find', listener);
   }
 
   offLogout(listener?: UserEventListener): void {
@@ -62,7 +54,6 @@ export class UserService extends SocketService {
   removeAllListeners(): void {
     this.offCreate();
     this.offFind();
-    this.offNotFound();
     this.offLogout();
   }
 }

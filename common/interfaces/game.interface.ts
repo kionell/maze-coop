@@ -1,5 +1,10 @@
-import { IRoom } from './room.interface';
+import { IUser } from './user.interface';
 
 export interface IGame {
-  room: IRoom;
+  hostId: string;
+  hostname: string;
+  userId: string;
+  username: string;
+  createdAt: number;
+  members: IUser[];
 }
