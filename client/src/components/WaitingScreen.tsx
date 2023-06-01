@@ -1,5 +1,4 @@
 import { useReadableTimeInterval } from '@hooks/useReadableTimeInterval';
-import { useGameStartListener } from '@hooks/useGameStartListener';
 import { useGameContext } from '@hooks/useGameContext';
 import styles from '@styles/Dashboard.module.css';
 
@@ -11,8 +10,6 @@ const WaitingScreen: React.FC = () => {
   const totalPlayers = gameState.value?.config.maxPlayers ?? 0;
   
   const passedTime = useReadableTimeInterval(createdAt);
-  
-  useGameStartListener();
 
   return (
     <div className={styles.dashboard_container}>
