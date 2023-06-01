@@ -25,9 +25,9 @@ class UserGateway {
       data = await this.userService.createUser(socket, username);
     } catch {
       error = 'Failed to create a user';
-    } finally {
-      socket.emit('user_create', { data, error });
     }
+
+    socket.emit('user_create', { data, error });
   }
 
   @SubscribeMessage('find_user')
@@ -39,9 +39,9 @@ class UserGateway {
       data = await this.userService.findUser(socket);
     } catch {
       error = 'User was not found';
-    } finally {
-      socket.emit('user_find', { data, error });
     }
+
+    socket.emit('user_find', { data, error });
   }
 
   @SubscribeMessage('logout_user')
