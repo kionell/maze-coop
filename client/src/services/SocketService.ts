@@ -14,11 +14,6 @@ export abstract class SocketService {
       closeOnBeforeunload: false,
       autoConnect: false,
     });
-
-    this.socket.on('disconnect', () => this.onDisconnect());
-    this.socket.on('connect', () => this.onConnect());
-    this.socket.on('connect_error', (err) => this.onConnectError(err));
-
   }
 
   async connect(): Promise<void> {
@@ -47,17 +42,5 @@ export abstract class SocketService {
   async reconnect(): Promise<void> {
     await this.disconnect();
     await this.connect();
-  }
-
-  onConnectError(err: unknown): void {
-    console.log('Connection error: ', err);
-  }
-
-  onConnect(): void {
-    console.log(`Connected to ${this.namespace}`);
-  }
-
-  onDisconnect(): void {
-    console.log(`Disconnected from ${this.namespace}`);
   }
 }

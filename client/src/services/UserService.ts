@@ -1,60 +1,41 @@
-import { IUser } from '@common/interfaces/user.interface';
-import { WebsocketMessageDto } from '@common/dto/websocket-message.dto';
+import { UserMessage } from '@common/messages/UserMessage';
 import { SocketService } from './SocketService';
-
-type UserEventListener = (message: WebsocketMessageDto<IUser>) => void;
 
 export class UserService extends SocketService {
   constructor() {
     super('/users');
   }
 
-  async create(username: string): Promise<void> {
+  async create(username: string): Promise<UserMessage> {
     await this.connect();
 
-    this.socket.emit('create_user', username);
+    return new Promise((resolve) => {
+      this.socket.once('user_create', (msg) => resolve(msg));
+      this.socket.emit('create_user', username);
+    });
   }
 
-  async find(): Promise<void> {
+  async find(): Promise<UserMessage> {
     await this.connect();
 
-    this.socket.emit('find_user');
+    return new Promise((resolve) => {
+      this.socket.once('user_find', (msg) => resolve(msg));
+      this.socket.emit('find_user');
+    });
   }
 
   async logout(): Promise<void> {
     await this.connect();
 
-    this.socket.emit('logout_user');
-  }
+    return new Promise((resolve) => {
+      this.socket.once('user_logout', async () => {
+        await userService.reconnect();
 
-  onCreate(listener: UserEventListener): void {
-    this.socket.on('user_create', listener);
-  }
+        resolve();
+      });
 
-  onFind(listener: UserEventListener): void {
-    this.socket.on('user_find', listener);
-  }
-
-  onLogout(listener: UserEventListener): void {
-    this.socket.on('user_logout', listener);
-  }
-
-  offCreate(listener?: UserEventListener): void {
-    this.socket.off('user_create', listener);
-  }
-
-  offFind(listener?: UserEventListener): void {
-    this.socket.off('user_find', listener);
-  }
-
-  offLogout(listener?: UserEventListener): void {
-    this.socket.off('user_logout', listener);
-  }
-
-  removeAllListeners(): void {
-    this.offCreate();
-    this.offFind();
-    this.offLogout();
+      this.socket.emit('logout_user');
+    });
   }
 }
 

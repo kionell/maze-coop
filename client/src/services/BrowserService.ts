@@ -1,32 +1,28 @@
-import { IGame } from '@common/interfaces/game.interface';
-import { WebsocketMessageDto } from '@common/dto/websocket-message.dto';
+import { BrowserMessage } from '@common/messages/BrowserMessage';
 import { SocketService } from './SocketService';
 
-type BrowseEventListener = (message: WebsocketMessageDto<IGame[]>) => void;
+type BrowserMessageListener = (msg: BrowserMessage) => void;
 
 export class BrowserService extends SocketService {
   constructor() {
     super('/browse');
-
-    this.socket.once('connect', () => this.browse());
   }
 
-  async browse(): Promise<void> {
+  async browse(): Promise<BrowserMessage> {
     await this.connect();
 
-    this.socket.emit('browse_rooms');
+    return new Promise((resolve) => {
+      this.socket.once('browser_update', (msg) => resolve(msg));
+      this.socket.emit('browse_games');
+    });
   }
 
-  onUpdate(listener: BrowseEventListener): void {
-    this.socket.on('browse_update', listener);
+  onUpdate(listener: BrowserMessageListener): void {
+    this.socket.on('browser_update', listener);
   }
 
-  offUpdate(listener?: BrowseEventListener): void {
-    this.socket.off('browse_update', listener);
-  }
-
-  removeAllListeners(): void {
-    this.offUpdate();
+  offUpdate(listener?: BrowserMessageListener): void {
+    this.socket.off('browser_update', listener);
   }
 }
 
