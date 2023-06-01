@@ -1,28 +1,16 @@
-import { Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { IGame } from '@common/interfaces/game.interface';
-import { UserService } from '../user/user.service';
+import { GameCompact } from '@common/interfaces/GameCompact';
 import { RedisService } from '../redis/redis.service';
-import { GameService } from '../game/game.service';
 
 @Injectable()
 export class BrowserService {
-  constructor(
-    private readonly redisService: RedisService,
-    private readonly userService: UserService,
-    private readonly gameService: GameService,
-  ) {}
+  constructor(private readonly redisService: RedisService) {}
 
-  async getAvailableGames(socket: Socket): Promise<IGame[]> {
-    const user = await this.userService.findUser(socket);
-    const games = await this.redisService.scan<IGame>();
+  async getAvailableGames(): Promise<GameCompact[]> {
+    const games = await this.redisService.scan<GameCompact>();
 
-    return games.filter(({ hostId, members }) => {
-      // Skip games made by the same user and full games.
-      const sameUser = user.id === hostId;
-      const tooManyPlayers = members.length >= this.gameService.MAX_PLAYERS;
-
-      return !sameUser && !tooManyPlayers;
+    return games.filter(({ config, members }) => {
+      return members.length < config.maxPlayers;
     });
   }
 }
