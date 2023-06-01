@@ -1,86 +1,80 @@
 import { Injectable } from '@nestjs/common';
 import { GameConfig } from '@common/interfaces/GameConfig';
-import { Color } from '@common/types/Color';
+import { Color, HSV, RGB } from '@common/types/Color';
 import { generateRandomInt } from '../utils/random';
 
 @Injectable()
 export class ColorGenerator {
   /**
-   * Generates a new maze.
+   * Generates a random color list.
+   * Colors will always differ in hue as much as possible.
    * @param config Game config.
-   * @returns Generated maze in the form of a 2D array.
+   * @returns Generated color list.
    */
   generate({ maxPlayers }: GameConfig): Color[] {
-    const uniqueColors: Set<Color> = new Set();
+    const hsv = this.generateRandomHSV(maxPlayers);
 
-    while (uniqueColors.size < maxPlayers) {
-      const hsv = this.generateRandomHSV(maxPlayers);
-      const hex = this.hsv2hex(hsv);
+    return hsv.map((color) => this.rgb2hex(this.hsv2rgb(color)));
+  }
 
-      if (!uniqueColors.has(hex)) {
-        uniqueColors.add(hex);
-      }
+  /**
+   * Generates a list of random HSV colors in a format:
+   * H - [0, 360], S - [0.75, 1], V - [0.75, 1]
+   * @param maxPlayers How many HSV colors should be generated?
+   * @returns A list of colors in HSV model.
+   */
+  private generateRandomHSV(maxPlayers: number): HSV[] {
+    const step = 360 / maxPlayers;
+    const startingIndex = Math.round(Math.random() * maxPlayers);
+    const startingHue = Math.round(startingIndex * step);
+
+    const colors: HSV[] = [];
+
+    for (let i = 0; i < maxPlayers; i++) {
+      const s = generateRandomInt(75, 100) / 100;
+      const v = generateRandomInt(75, 100) / 100;
+
+      let h = Math.round(startingHue + i * step);
+
+      while (h >= 360) h -= 360;
+
+      colors.push([h, s, v]);
     }
 
-    return [...uniqueColors];
+    return colors;
   }
 
-  private generateRandomHSV(maxPlayers: number): [number, number, number] {
-    const s = generateRandomInt(50, 100);
-    const v = generateRandomInt(50, 100);
+  /**
+   * Converts an HSV color value to RGB.
+   * Acceptable format: H - [0, 360], S - [0, 1], V - [0, 1].
+   * Return format: R - [0, 255], G - [0, 255], B - [0, 255].
+   * @param HSV A color in HSV model.
+   * @returns A color in RGB model.
+   */
+  private hsv2rgb([h, s, v]: HSV): RGB {
+    const i = Math.floor(h / 60);
+    const f = h / 60 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
 
-    const step = 360 / maxPlayers;
-    const index = Math.floor(Math.random() * maxPlayers);
-
-    let h = index * step;
-
-    while (h < 0) h += 360;
-    while (h >= 360) h -= 360;
-
-    return [h, s, v];
+    // Prettier doesn't allow me to use one-liners with switch...
+    if (i === 0) return [v * 255, t * 255, p * 255];
+    if (i === 1) return [q * 255, v * 255, p * 255];
+    if (i === 2) return [p * 255, v * 255, t * 255];
+    if (i === 3) return [p * 255, q * 255, v * 255];
+    if (i === 4) return [t * 255, p * 255, v * 255];
+    if (i === 5) return [v * 255, p * 255, q * 255];
   }
 
-  private hsv2hex([h, s, v]: [number, number, number]): Color {
-    const C = s * v;
-    const X = C * (1 - Math.abs(((h / 60) % 2) - 1));
-    const m = v - C;
+  /**
+   * Converts an RGB color to HEX form.
+   * @param RGB A color in RGB model.
+   * @returns A color in a HEX form.
+   */
+  private rgb2hex([r, g, b]: RGB): Color {
+    const toHex = (x: number) => Math.round(x).toString(16).padStart(2, '0');
 
-    const rTemp = this.getTempR(h, C, X);
-    const gTemp = this.getTempG(h, C, X);
-    const bTemp = this.getTempB(h, C, X);
-
-    const r = Math.round((rTemp + m) * 255);
-    const g = Math.round((gTemp + m) * 255);
-    const b = Math.round((bTemp + m) * 255);
-
-    const base = this.toHex(r) + this.toHex(g) + this.toHex(b);
-
-    return ('#' + base).toUpperCase() as Color;
-  }
-
-  private getTempR(h: number, C: number, X: number): number {
-    if (h <= 360) return C;
-    if (h <= 300) return X;
-    if (h <= 240) return 0;
-    if (h <= 120) return X;
-    if (h <= 60) return C;
-  }
-
-  private getTempG(h: number, C: number, X: number): number {
-    if (h <= 360) return 0;
-    if (h <= 240) return X;
-    if (h <= 180) return C;
-    if (h <= 60) return X;
-  }
-
-  private getTempB(h: number, C: number, X: number): number {
-    if (h <= 360) return X;
-    if (h <= 300) return C;
-    if (h <= 180) return X;
-    if (h <= 120) return 0;
-  }
-
-  private toHex(x: number): string {
-    return x.toString(16).padStart(2, '0');
+    return ('#' + toHex(r) + toHex(g) + toHex(b)).toUpperCase() as Color;
   }
 }
