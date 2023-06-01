@@ -1,15 +1,14 @@
-import { useContext } from "react";
-import { UserContext } from "@context/UserContext";
-import { GameContext } from "@context/GameContext";
+import { useUserContext } from "@hooks/useUserContext";
+import { useGameContext } from "@hooks/useGameContext";
 import UserForm from "@components/UserForm";
-import Game from "@components/Game";
 import Dashboard from "@components/Dashboard";
+import Game from "@components/Game";
 
 export default function Page() {
-  const userState = useContext(UserContext);
-  const playingState = useContext(GameContext);
+  const userState = useUserContext();
+  const gameState = useGameContext();
 
-  if (playingState.value) {
+  if (gameState.value !== null) {
     return <Game />;
   }
 

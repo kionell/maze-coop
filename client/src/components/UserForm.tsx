@@ -1,9 +1,9 @@
-import { FormEvent, useContext } from "react";
-import { UserContext } from "@context/UserContext";
+import { FormEvent } from "react";
+import { useUserContext } from "@hooks/useUserContext";
 import styles from '@styles/UserForm.module.css';
 
 const UserForm: React.FC = () => {
-  const userState = useContext(UserContext);
+  const userState = useUserContext();
   
   const onFormSubmit = (event: FormEvent) => {
     event.preventDefault();

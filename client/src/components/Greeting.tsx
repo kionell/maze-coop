@@ -1,8 +1,7 @@
-import { useContext } from "react";
-import { UserContext } from "@context/UserContext";
+import { useUserContext } from "@hooks/useUserContext";
 
 const Greeting: React.FC = () => {  
-  const userState = useContext(UserContext);
+  const userState = useUserContext();
   
   return <h1>Hello, {userState.value?.username}</h1>;
 }

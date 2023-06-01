@@ -1,8 +1,7 @@
-import { useContext } from 'react';
-import { UserContext } from '@context/UserContext';
+import { useUserContext } from "@hooks/useUserContext";
 
 const UserLogoutButton: React.FC = () => {
-  const userState = useContext(UserContext);
+  const userState = useUserContext();
 
   const onUserLogout = () => userState.set(null);
   

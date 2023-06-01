@@ -1,11 +1,10 @@
-import { useContext } from 'react';
 import { gameService } from '@services/GameService';
-import { UserContext } from '@context/UserContext';
-import { GameContext } from '@context/GameContext';
+import { useUserContext } from '@hooks/useUserContext';
+import { useGameContext } from '@hooks/useGameContext';
 
 const NewGameButton: React.FC = () => {
-  const userState = useContext(UserContext);
-  const playingState = useContext(GameContext);
+  const userState = useUserContext();
+  const gameState = useGameContext();
 
   const onRoomCreateClick = () => {
     if (!userState.value) return;
