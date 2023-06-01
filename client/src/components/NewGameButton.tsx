@@ -9,8 +9,16 @@ const NewGameButton: React.FC = () => {
   const onRoomCreateClick = () => {
     if (!userState.value) return;
 
-    gameService.create();
-    playingState.set(true);
+    gameService.onCreate((message) => {
+      gameState.set(message.data);
+    });
+
+    gameService.create({
+      rows: 10,
+      columns: 10,
+      maxPlayers: 2,
+      maxSpread: 'auto',
+    });
   };
   
   return (

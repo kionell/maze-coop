@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export const useLeavePageConfirm = () => {
+export function useLeavePageConfirm() {
   useEffect(() => {
     const onPageLeave = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -14,4 +14,4 @@ export const useLeavePageConfirm = () => {
       window.removeEventListener('beforeunload', onPageLeave);
     }
   }, []);
-};
+}
