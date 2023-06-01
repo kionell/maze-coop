@@ -4,13 +4,17 @@ import {
   ReactNode,
 } from "react";
 
+import { GameCompact } from "@common/interfaces/GameCompact";
+import { browserService } from "@services/BrowserService";
+import { gameService } from "@services/GameService";
+
 type GameContextDefaultValue = {
-  value: boolean;
-  set: (isPlaying: boolean) => void;
+  value: GameCompact | null;
+  set: (game: GameCompact | null) => void;
 };
 
 export const GameContext = createContext<GameContextDefaultValue>({
-  value: false,
+  value: null,
   set: () => {},
 });
 
@@ -19,10 +23,21 @@ interface IGameProviderProps {
 }
 
 export function GameProvider({ children }: IGameProviderProps) {
-  const [state, setState] = useState(false);
+  const [state, setState] = useState<GameCompact | null>(null);
+
+  const setGame = async (game: GameCompact | null) => {
+    if (state === game) return;
+
+    const service = game !== null ? browserService : gameService;
+
+    await service.disconnect();
+
+    setState(game);
+    console.log(game);
+  }
 
   return (
-    <GameContext.Provider value={{ value: state, set: setState }}>
+    <GameContext.Provider value={{ value: state, set: setGame }}>
       {children}
     </GameContext.Provider>
   );

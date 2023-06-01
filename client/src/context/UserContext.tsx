@@ -2,14 +2,14 @@ import {
   createContext, 
   useState,
   ReactNode,
-  useEffect,
 } from "react";
 
-import { IUser } from "@common/interfaces/user.interface";
+import { useEffectOnce } from "react-use";
+import { UserCompact } from "@common/interfaces/UserCompact";
 import { userService } from "../services/UserService";
 
 type UserContextDefaultValue = {
-  value: IUser | null;
+  value: UserCompact | null;
   set: (username: string | null) => void;
 };
 
@@ -23,43 +23,25 @@ interface IUserProviderProps {
 }
 
 export function UserProvider({ children }: IUserProviderProps) {
-  const [state, setState] = useState<IUser | null>(null);
+  const [state, setState] = useState<UserCompact | null>(null);
 
-  const setUser = (username: string | null) => {
+  const setUser = async (username: string | null) => {
+    if (state?.username === username) return;
+    
     if (username === null) {
-      userService.onLogout(() => {
-        userService.reconnect();
-        setState(null);
-      });
-      
-      userService.logout();
+      await userService.logout();
+
+      return setState(null);
     }
-    else { 
-      userService.onCreate(({ data, error }) => {
-        if (!error) setState(data);
-      });
-      
-      userService.create(username);
-    }
+     
+    const message = await userService.create(username);
+
+    setState(message.data);
   }
 
-  useEffect(() => {
-    async function initUser() {
-      await userService.connect();
-      
-      userService.onFind(({ data, error }) => {
-        setState(error ? null : data);
-      });
-
-      userService.find();
-    }
-
-    initUser();
-
-    return () => {
-      userService.removeAllListeners();
-    }
-  }, []);
+  useEffectOnce(() => {
+    userService.find().then((message) => setState(message.data));
+  });
 
   return (
     <UserContext.Provider value={{ value: state, set: setUser }}>
