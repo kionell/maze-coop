@@ -16,7 +16,7 @@ export class PlayerGenerator {
    * @param config Game config.
    * @returns Generated spawn points.
    */
-  generate(maze: Maze, { maxPlayers, maxSpread }: GameConfig): Point[] {
+  generate(maze: Maze, config: GameConfig): Point[] {
     const spawnPoints: Point[] = [];
     const pointHistory: DistancePoint[] = [];
 
@@ -32,16 +32,16 @@ export class PlayerGenerator {
 
       // Here we check our point history for the presence of at least one point.
       // Our first point is always a key point and is located in a dead end.
-      if (pointHistory.length > 0 && pointHistory.length < maxPlayers) {
+      if (pointHistory.length > 0 && pointHistory.length < config.maxPlayers) {
         // Populate history with points that are relatively close to the first one.
-        if (this.atRightDistance(pointHistory, distancePoint, maxPlayers, maxSpread)) {
+        if (this.atRightDistance(pointHistory, distancePoint, config)) {
           pointHistory.push(distancePoint);
         }
       }
 
       // When there are enough points in history we can update
       // all spawn points to keep them relatively close.
-      if (pointHistory.length === maxPlayers) {
+      if (pointHistory.length === config.maxPlayers) {
         for (let i = 0; i < pointHistory.length; i++) {
           spawnPoints[i] = pointHistory[i].position;
         }
@@ -57,7 +57,7 @@ export class PlayerGenerator {
 
     // In case the point history was not full enough when the last distance point was reached
     // Add missing spawn points by randomly copying existing ones.
-    while (spawnPoints.length < maxPlayers) {
+    while (spawnPoints.length < config.maxPlayers) {
       const randomIndex = Math.floor(Math.random() * pointHistory.length);
 
       spawnPoints.push(pointHistory[randomIndex].position);
@@ -67,17 +67,16 @@ export class PlayerGenerator {
   }
 
   private atRightDistance(
-    spawnPoints: DistancePoint[],
-    spawnPoint: DistancePoint,
-    maxPoints: number,
-    maxSpread?: number,
+    points: DistancePoint[],
+    point: DistancePoint,
+    config: GameConfig,
   ): boolean {
-    if (!spawnPoints.length) return true;
+    if (!points.length) return true;
 
-    const spreadRange = this.getDistanceSpreadRange(spawnPoints, maxPoints, maxSpread);
+    const spreadRange = this.getDistanceSpreadRange(points, config);
 
-    for (let i = spawnPoints.length - 1; i >= 0; i--) {
-      const distance = Math.abs(spawnPoints[i].distance - spawnPoint.distance);
+    for (let i = points.length - 1; i >= 0; i--) {
+      const distance = Math.abs(points[i].distance - point.distance);
 
       if (distance < spreadRange.min || distance > spreadRange.max) {
         return false;
@@ -87,22 +86,18 @@ export class PlayerGenerator {
     return true;
   }
 
-  private getDistanceSpreadRange(
-    points: DistancePoint[],
-    maxPoints: number,
-    maxSpread?: number,
-  ) {
+  private getDistanceSpreadRange(points: DistancePoint[], config: GameConfig) {
     let min = 0;
     let max = 0;
 
-    if (!maxSpread) {
+    if (config.maxSpread === 'auto' || config.maxSpread <= 0) {
       const maxDistanceToExit = points.reduce((p, c) => Math.max(p, c.distance), 0);
 
       min = Math.sqrt(maxDistanceToExit);
-      max = maxPoints * min;
+      max = config.maxPlayers * min;
     } else {
-      max = maxSpread;
-      min = max / maxPoints;
+      max = config.maxSpread;
+      min = max / config.maxPlayers;
     }
 
     return { min, max } as DistanceSpreadRange;

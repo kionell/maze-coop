@@ -17,5 +17,5 @@ export interface GameConfig {
   /**
    * Max distance spread between each point.
    */
-  maxSpread: number;
+  maxSpread: number | 'auto';
 }
