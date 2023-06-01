@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameModule } from './game/game.module';
-import { BrowserModule } from './room/browser.module';
+import { BrowserModule } from './browser/browser.module';
 import { ChatModule } from './chat/chat.module';
 import { RedisModule } from './redis/redis.module';
 import { UserModule } from './user/user.module';
