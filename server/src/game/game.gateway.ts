@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayDisconnect,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -13,7 +13,7 @@ import { GameService } from './game.service';
 import { BrowserGateway } from '../browser/browser.gateway';
 
 @WebSocketGateway({ path: '/games' })
-class GameGateway implements OnGatewayDisconnect {
+class GameGateway implements OnGatewayConnection {
   @WebSocketServer()
   io: Server;
 
@@ -83,8 +83,14 @@ class GameGateway implements OnGatewayDisconnect {
     } catch {}
   }
 
-  async handleDisconnect(socket: Socket) {
-    return this.leaveGame(socket);
+  handleConnection(socket: Socket) {
+    socket.on('disconnecting', () => {
+      socket.rooms.forEach((roomId) => {
+        if (socket.id === roomId) return;
+
+        this.leaveGame(socket, roomId);
+      });
+    });
   }
 }
 
