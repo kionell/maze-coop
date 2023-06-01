@@ -16,7 +16,7 @@ const WaitingScreen: React.FC = () => {
 
   return (
     <div className={styles.dashboard_container}>
-      <span>You started a new game { passedTime } ago.</span>
+      <span>The game was created { passedTime } ago.</span>
       <span>Waiting for others players... ({currentPlayers} / {totalPlayers})</span>
     </div>
   );
