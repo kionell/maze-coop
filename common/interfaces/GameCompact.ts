@@ -9,4 +9,5 @@ export interface GameCompact {
   metadata: GameMetadata;
   members: (GameMember | null)[];
   status: GameStatus;
+  memberCount: number;
 }

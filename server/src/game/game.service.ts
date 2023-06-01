@@ -40,7 +40,11 @@ export class GameService {
         hostname: host.username,
         createdAt: host.joinedAt,
       },
-      members: [host],
+      memberCount: 1,
+      members: new Array(config.maxPlayers)
+        .fill(null)
+        .map((_, i) => (i === 0 ? host : null)),
+
       config,
     };
 
@@ -85,12 +89,24 @@ export class GameService {
   async addUserToGame(socket: Socket, game: Game): Promise<GameCompact> {
     const user = await this.userService.findUser(socket);
 
-    game.members.push({
-      id: user.id,
-      username: user.username,
-      createdAt: user.createdAt.getTime(),
-      joinedAt: Date.now(),
-    });
+    // We want to preserve original player position in the list.
+    // That's the reason why we can't use default push() here.
+    //
+    // Example: [P1, null, null, P2] -> [P1, P3, null, P2]
+    for (let i = 0; i < game.members.length; i++) {
+      if (game.members[i]) continue;
+
+      game.members[i] = {
+        id: user.id,
+        username: user.username,
+        createdAt: user.createdAt.getTime(),
+        joinedAt: Date.now(),
+      };
+
+      game.memberCount++;
+
+      break;
+    }
 
     this.redisService.set(game.id, game);
 
@@ -102,13 +118,18 @@ export class GameService {
   async removeUserFromGame(socket: Socket, game: Game): Promise<GameCompact> {
     const user = await this.userService.findUser(socket);
 
+    // We want to preserve original player position in the list.
+    //
+    // Example: [P1, P3, null, P2] -> [null, P3, null, P2]
     for (let i = game.members.length - 1; i >= 0; i--) {
-      if (game.members[i].id !== user.id) continue;
+      if (game.members[i]?.id !== user.id) continue;
 
       game.members[i] = null;
+      game.memberCount--;
     }
 
-    if (game.members.filter((x) => x).length <= 1) {
+    // Handle the case when all members left the game.
+    if (game.memberCount === 0) {
       game.status = GameStatus.Cancelled;
 
       this.redisService.delete(game.id);
@@ -140,6 +161,7 @@ export class GameService {
       id: game.id,
       config: game.config,
       members: game.members,
+      memberCount: game.memberCount,
       metadata: game.metadata,
       status: game.status,
     };
