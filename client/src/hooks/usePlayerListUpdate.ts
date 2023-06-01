@@ -1,14 +1,17 @@
 import { useEffectOnce } from "react-use";
 import { gameService } from "@services/GameService";
 import { useGameContext } from "./useGameContext";
+import { useUserContext } from "./useUserContext";
 
 export function usePlayerListUpdate() {
+  const userState = useUserContext();
   const gameState = useGameContext();
 
   useEffectOnce(() => {    
     gameService.onStart(({ data }) => {
       gameService.offStart();
       gameService.offJoin();
+
       gameState.set(data);
     });
 
@@ -22,10 +25,14 @@ export function usePlayerListUpdate() {
 
     gameService.onJoin(({ data }) => {
       if (data.memberCount === data.config.maxPlayers) {
-        return gameService.start(data.id);
+        // Only host can emit game start event.
+        if (userState.value?.id === data.metadata.hostId) {
+          return gameService.start(data.id);
+        }
       }
-
-      gameState.set(data);
+      else { 
+        gameState.set(data);
+      }
     });
 
     return () => {
