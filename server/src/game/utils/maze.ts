@@ -1,6 +1,6 @@
-import { MazeCellType } from '../enums/MazeCellType';
-import { Maze } from '../types/Maze';
-import { Point } from '../types/Point';
+import { MazeCellType } from '@common/enums/MazeCellType';
+import { Maze } from '@common/types/Maze';
+import { Point } from '@common/types/Point';
 
 export function findExitPoint(maze: number[][]): Point {
   const exitPoint: Point = { x: -1, y: -1 };

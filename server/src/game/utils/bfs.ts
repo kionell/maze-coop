@@ -1,7 +1,7 @@
-import { Point } from '../types/Point';
-import { DistancePoint } from '../types/DistancePoint';
-import { Maze } from '../types/Maze';
-import { MazeCellType } from '../enums/MazeCellType';
+import { Point } from '@common/types/Point';
+import { DistancePoint } from '@common/types/DistancePoint';
+import { Maze } from '@common/types/Maze';
+import { MazeCellType } from '@common/enums/MazeCellType';
 
 /**
  * Searches for the shortest path in the maze between two points using BFS.
