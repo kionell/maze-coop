@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io';
+import { randomUUID } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { Game } from '@common/interfaces/Game';
 import { GameCompact } from '@common/interfaces/GameCompact';
@@ -32,6 +33,7 @@ export class GameService {
     };
 
     const compact: GameCompact = {
+      id: randomUUID(),
       status: GameStatus.Created,
       metadata: {
         hostId: host.id,
@@ -56,8 +58,8 @@ export class GameService {
       chat: [],
     };
 
-    await this.redisService.set(host.id, game);
-    await socket.join(host.id);
+    await this.redisService.set(game.id, game);
+    await socket.join(game.id);
 
     return compact;
   }
@@ -75,7 +77,7 @@ export class GameService {
     game.state.positions = spawnPoints;
     game.status = GameStatus.Started;
 
-    this.redisService.set(game.metadata.hostId, game);
+    this.redisService.set(game.id, game);
 
     return this.makeCompactGame(game);
   }
@@ -90,9 +92,9 @@ export class GameService {
       joinedAt: Date.now(),
     });
 
-    this.redisService.set(game.metadata.hostId, game);
+    this.redisService.set(game.id, game);
 
-    await socket.join(game.metadata.hostId);
+    await socket.join(game.id);
 
     return this.makeCompactGame(game);
   }
@@ -109,10 +111,12 @@ export class GameService {
     if (game.members.filter((x) => x).length <= 1) {
       game.status = GameStatus.Cancelled;
 
-      this.redisService.delete(game.metadata.hostId);
+      this.redisService.delete(game.id);
+    } else {
+      this.redisService.set(game.id, game);
     }
 
-    await socket.leave(game.metadata.hostId);
+    await socket.leave(game.id);
 
     return this.makeCompactGame(game);
   }
@@ -133,6 +137,7 @@ export class GameService {
 
   private makeCompactGame(game: Game): GameCompact {
     return {
+      id: game.id,
       config: game.config,
       members: game.members,
       metadata: game.metadata,

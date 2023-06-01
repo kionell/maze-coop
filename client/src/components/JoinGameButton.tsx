@@ -2,14 +2,14 @@ import { gameService } from '@services/GameService';
 import { usePlayerListUpdate } from '@hooks/usePlayerListUpdate';
 
 interface JoinGameButtonProps {
-  hostId: string;
+  id: string;
 }
 
-const JoinGameButton: React.FC<JoinGameButtonProps> = ({ hostId }) => {
+const JoinGameButton: React.FC<JoinGameButtonProps> = ({ id }) => {
   usePlayerListUpdate();
   
   return (
-    <button onClick={() => gameService.join(hostId)}>Join Game</button>
+    <button onClick={() => gameService.join(id)}>Join Game</button>
   );
 }
 

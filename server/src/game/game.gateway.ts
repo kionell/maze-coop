@@ -10,6 +10,7 @@ import {
 } from '@nestjs/websockets';
 
 import { GameConfig } from '@common/interfaces/GameConfig';
+import { GameStatus } from '@common/enums/GameStatus';
 import { GameService } from './game.service';
 import { BrowserGateway } from '../browser/browser.gateway';
 
@@ -40,45 +41,39 @@ class GameGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('join_game')
-  async joinGame(@ConnectedSocket() socket: Socket, @MessageBody() hostId: string) {
+  async joinGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
     try {
-      const game = await this.gameService.getGameById(hostId);
+      const game = await this.gameService.getGameById(id);
       const data = await this.gameService.addUserToGame(socket, game);
 
-      this.io.to(game.metadata.hostId).emit('game_join', {
-        error: null,
-        data,
-      });
+      this.io.to(game.id).emit('game_join', { error: null, data });
 
       this.browserGateway.updateGames();
     } catch {}
   }
 
   @SubscribeMessage('start_game')
-  async startGame(@MessageBody() hostId: string) {
+  async startGame(@MessageBody() id: string) {
     try {
-      const game = await this.gameService.getGameById(hostId);
+      const game = await this.gameService.getGameById(id);
       const data = await this.gameService.startGame(game);
 
-      this.io.to(game.metadata.hostId).emit('game_start', {
-        error: null,
-        data,
-      });
+      this.io.to(game.id).emit('game_start', { error: null, data });
 
       this.browserGateway.updateGames();
     } catch {}
   }
 
   @SubscribeMessage('leave_game')
-  async leaveGame(@ConnectedSocket() socket: Socket, @MessageBody() hostId: string) {
+  async leaveGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
     try {
-      const game = await this.gameService.getGameById(hostId);
+      const game = await this.gameService.getGameById(id);
       const data = await this.gameService.removeUserFromGame(socket, game);
 
-      this.io.to(game.metadata.hostId).emit('game_cancel', {
-        error: null,
-        data,
-      });
+      // Yeah, it's possible to continue the game even if there is only one player left.
+      const event = data.status === GameStatus.Cancelled ? 'game_cancel' : 'game_leave';
+
+      this.io.to(game.id).emit(event, { error: null, data });
 
       this.browserGateway.updateGames();
     } catch {}

@@ -15,16 +15,22 @@ export class GameService extends SocketService {
     this.socket.emit('create_game', config);
   }
 
-  async join(hostId: string): Promise<void> {
+  async join(id: string): Promise<void> {
     await this.connect();
 
-    this.socket.emit('join_game', hostId);
+    this.socket.emit('join_game', id);
   }
 
-  async start(hostId: string): Promise<void> {
+  async start(id: string): Promise<void> {
     await this.connect();
 
-    this.socket.emit('start_game', hostId);
+    this.socket.emit('start_game', id);
+  }
+
+  async leave(id: string): Promise<void> {
+    await this.connect();
+
+    this.socket.emit('leave_game', id);
   }
 
   onCreate(listener: GameMessageListener): void {
@@ -33,6 +39,10 @@ export class GameService extends SocketService {
 
   onJoin(listener: GameMessageListener): void {
     this.socket.on('game_join', listener);
+  }
+
+  onLeave(listener: GameMessageListener): void {
+    this.socket.on('game_leave', listener);
   }
 
   onStart(listener: GameMessageListener): void {
@@ -54,6 +64,10 @@ export class GameService extends SocketService {
   offJoin(listener?: GameMessageListener): void {
     this.socket.off('game_join', listener);
   }
+
+  offLeave(listener?: GameMessageListener): void {
+    this.socket.off('game_leave', listener);
+  }  
 
   offStart(listener?: GameMessageListener): void {
     this.socket.off('game_start', listener);

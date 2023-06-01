@@ -8,9 +8,7 @@ const WaitingList: React.FC = () => {
   return (
     <div className={styles.dashboard_container}>
       {
-        games.map((game) => {
-          return <WaitingListEntry {...game} key={game.metadata.hostId} />;
-        })
+        games.map((game) => <WaitingListEntry {...game} key={game.id} />)
       }
     </div>
   );
