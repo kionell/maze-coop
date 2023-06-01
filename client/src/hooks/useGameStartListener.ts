@@ -7,6 +7,8 @@ export function useGameStartListener() {
 
   useEffectOnce(() => {
     gameService.onStart(({ data }) => {
+      gameService.offStart();
+      gameService.offJoin();
       gameState.set(data);
     });
 
@@ -18,10 +20,5 @@ export function useGameStartListener() {
         gameState.set(data);
       }
     });
-
-    return () => {
-      gameService.offStart();
-      gameService.offJoin();
-    }
   });
 }
