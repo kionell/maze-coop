@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { GameStatus } from '@common/enums/GameStatus';
 import { GameCompact } from '@common/interfaces/GameCompact';
 import { RedisService } from '../redis/redis.service';
 
@@ -9,8 +10,8 @@ export class BrowserService {
   async getAvailableGames(): Promise<GameCompact[]> {
     const games = await this.redisService.scan<GameCompact>();
 
-    return games.filter(({ config, members }) => {
-      return members.length < config.maxPlayers;
+    return games.filter(({ config, memberCount, status }) => {
+      return memberCount < config.maxPlayers && status !== GameStatus.Started;
     });
   }
 }
