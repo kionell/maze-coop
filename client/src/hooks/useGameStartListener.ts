@@ -6,10 +6,22 @@ export function useGameStartListener() {
   const gameState = useGameContext();
 
   useEffectOnce(() => {
-    gameService.onStart((message) => {
-      gameState.set(message.data);
+    gameService.onStart(({ data }) => {
+      gameState.set(data);
     });
 
-    return () => gameService.offStart();
+    gameService.onJoin(({ data }) => {
+      if (data.members.length === data.config.maxPlayers) {
+        gameService.start(data.metadata.hostId);
+      }
+      else {
+        gameState.set(data);
+      }
+    });
+
+    return () => {
+      gameService.offStart();
+      gameService.offJoin();
+    }
   });
 }
