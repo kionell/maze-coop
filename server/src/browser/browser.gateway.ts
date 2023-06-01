@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 
 import { BrowserService } from './browser.service';
+import { GameMessage } from '@common/messages/GameMessage';
 
 @WebSocketGateway({ path: '/browse' })
 class BrowserGateway {
@@ -17,17 +18,25 @@ class BrowserGateway {
   constructor(private readonly browserService: BrowserService) {}
 
   @SubscribeMessage('browse_games')
-  async browseBrowsers(@ConnectedSocket() socket: Socket) {
+  async browseGames(@ConnectedSocket() socket: Socket) {
+    socket.emit('browser_update', await this.getMessage());
+  }
+
+  async updateGames() {
+    this.io.emit('browser_update', await this.getMessage());
+  }
+
+  private async getMessage(): Promise<GameMessage> {
     let data = null;
     let error = null;
 
     try {
-      data = await this.browserService.getAvailableGames(socket);
+      data = await this.browserService.getAvailableGames();
     } catch (err: any) {
-      error = 'Failed to get available browsers';
-    } finally {
-      socket.emit('browse_update', { data, error });
+      error = 'Failed to get available games';
     }
+
+    return { data, error } as GameMessage;
   }
 }
 

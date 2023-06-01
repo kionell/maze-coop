@@ -9,6 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 
+import { GameConfig } from '@common/interfaces/GameConfig';
 import { GameService } from './game.service';
 import { BrowserGateway } from '../browser/browser.gateway';
 
@@ -23,17 +24,17 @@ class GameGateway implements OnGatewayConnection {
   ) {}
 
   @SubscribeMessage('create_game')
-  async createGame(@ConnectedSocket() socket: Socket) {
+  async createGame(@ConnectedSocket() socket: Socket, @MessageBody() config: GameConfig) {
     let data = null;
     let error = null;
 
     try {
-      data = await this.gameService.saveGame(socket);
+      data = await this.gameService.createGame(socket, config);
     } catch (err: any) {
       error = 'Failed to create a game';
-    } finally {
-      socket.broadcast.emit('game_create', { data, error });
     }
+
+    socket.emit('game_create', { data, error });
 
     this.browserGateway.updateGames();
   }
