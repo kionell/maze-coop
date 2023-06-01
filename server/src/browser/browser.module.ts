@@ -6,5 +6,6 @@ import { RedisModule } from '../redis/redis.module';
 @Module({
   imports: [RedisModule],
   providers: [BrowserGateway, BrowserService],
+  exports: [BrowserGateway],
 })
 export class BrowserModule {}

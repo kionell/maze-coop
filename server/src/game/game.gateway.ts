@@ -10,13 +10,17 @@ import {
 } from '@nestjs/websockets';
 
 import { GameService } from './game.service';
+import { BrowserGateway } from '../browser/browser.gateway';
 
 @WebSocketGateway({ path: '/games' })
 class GameGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   io: Server;
 
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    private readonly browserGateway: BrowserGateway,
+  ) {}
 
   @SubscribeMessage('create_game')
   async createGame(@ConnectedSocket() socket: Socket) {
@@ -30,38 +34,53 @@ class GameGateway implements OnGatewayDisconnect {
     } finally {
       socket.broadcast.emit('game_create', { data, error });
     }
+
+    this.browserGateway.updateGames();
   }
 
   @SubscribeMessage('join_game')
   async joinGame(@ConnectedSocket() socket: Socket, @MessageBody() hostId: string) {
-    let data = null;
-    let error = null;
-
     try {
       const game = await this.gameService.getGameById(hostId);
+      const data = await this.gameService.addUserToGame(socket, game);
 
-      data = await this.gameService.addUserToGame(socket, game);
-    } catch (err: any) {
-      error = 'Failed to join a game';
-    } finally {
-      this.io.emit('game_join', { data, error });
-    }
+      this.io.to(game.metadata.hostId).emit('game_join', {
+        error: null,
+        data,
+      });
+
+      this.browserGateway.updateGames();
+    } catch {}
+  }
+
+  @SubscribeMessage('start_game')
+  async startGame(@MessageBody() hostId: string) {
+    try {
+      const game = await this.gameService.getGameById(hostId);
+      const data = await this.gameService.startGame(game);
+
+      this.io.to(game.metadata.hostId).emit('game_start', {
+        error: null,
+        data,
+      });
+
+      this.browserGateway.updateGames();
+    } catch {}
   }
 
   @SubscribeMessage('leave_game')
-  async leaveGame(@ConnectedSocket() socket: Socket) {
-    let data = null;
-    let error = null;
-
+  async leaveGame(@ConnectedSocket() socket: Socket, @MessageBody() hostId: string) {
     try {
-      const game = await this.gameService.getGameBySocket(socket);
+      const game = await this.gameService.getGameById(hostId);
+      const data = await this.gameService.removeUserFromGame(socket, game);
 
-      data = await this.gameService.removeUserFromGame(socket, game);
-    } catch (err: any) {
-      error = 'Failed to leave a game';
-    } finally {
-      this.io.emit('game_cancel', { data, error });
-    }
+      this.io.to(game.metadata.hostId).emit('game_cancel', {
+        error: null,
+        data,
+      });
+
+      this.browserGateway.updateGames();
+    } catch {}
   }
 
   async handleDisconnect(socket: Socket) {
