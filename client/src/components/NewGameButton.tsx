@@ -1,5 +1,5 @@
 import { gameService } from '@services/GameService';
-import { useGameCreate } from '../hooks/useGameCreate';
+import { useGameCreate } from '@hooks/useGameCreate';
 
 const NewGameButton: React.FC = () => {
   useGameCreate();

@@ -6,7 +6,7 @@ import {
 
 import { useEffectOnce } from 'react-use';
 import { UserInfo } from '@common/interfaces/UserInfo';
-import { userService } from '../services/UserService';
+import { userService } from '@services/UserService';
 
 type UserContextDefaultValue = {
   value: UserInfo | null;

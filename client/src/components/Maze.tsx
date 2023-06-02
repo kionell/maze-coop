@@ -1,7 +1,7 @@
-import { useRef } from 'react';
-import styles from '../styles/Maze.module.css';
-import { useGameContext } from '../hooks/useGameContext';
+import { useRef, useState } from 'react';
+import { useGameContext } from '@hooks/useGameContext';
 import { useEffectOnce } from 'react-use';
+import styles from '@styles/Maze.module.css';
 
 const Maze: React.FC = () => {
   const gameState = useGameContext();
