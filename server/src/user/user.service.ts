@@ -37,6 +37,8 @@ export class UserService {
       await session.save();
     }
 
+    await socket.join(user.id);
+
     return user;
   }
 
@@ -63,6 +65,8 @@ export class UserService {
     if (!user) {
       throw new Error('User is not found!');
     }
+
+    await socket.join(user.id);
 
     return user;
   }
