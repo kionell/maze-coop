@@ -4,18 +4,23 @@ import {
   ReactNode,
 } from 'react';
 
-import { GameCompact } from "@common/interfaces/GameCompact";
+import { GameInfo } from '@common/interfaces/GameInfo';
+import { GameState } from '@common/interfaces/GameState';
 import { browserService } from '@services/BrowserService';
 import { gameService } from '@services/GameService';
 
 type GameContextDefaultValue = {
-  value: GameCompact | null;
-  set: (game: GameCompact | null) => void;
+  info: GameInfo | null;
+  state: GameState | null;
+  setInfo: (game: GameInfo | null) => void;
+  setState: (state: GameState | null) => void;
 };
 
 export const GameContext = createContext<GameContextDefaultValue>({
-  value: null,
-  set: () => {},
+  info: null,
+  state: null,
+  setInfo: () => {},
+  setState: () => {},
 });
 
 interface IGameProviderProps {
@@ -23,21 +28,25 @@ interface IGameProviderProps {
 }
 
 export function GameProvider({ children }: IGameProviderProps) {
-  const [state, setState] = useState<GameCompact | null>(null);
+  const [localInfo, setLocalInfo] = useState<GameInfo | null>(null);
+  const [localState, setLocalState] = useState<GameState | null>(null);
 
-  const setGame = async (game: GameCompact | null) => {
-    if (state === game) return;
+  const setInfo = (info: GameInfo | null) => {
+    if (localInfo === info) return;
 
-    const service = game !== null ? browserService : gameService;
+    (info === null ? gameService : browserService).disconnect();
 
-    await service.disconnect();
+    setLocalInfo(info);
+  }
 
-    setState(game);
-    console.log(game);
+  const setState = (state: GameState | null) => {
+    if (localState === state) return;
+
+    setLocalState(state);
   }
 
   return (
-    <GameContext.Provider value={{ value: state, set: setGame }}>
+    <GameContext.Provider value={{ info: localInfo, state: localState, setInfo, setState }}>
       {children}
     </GameContext.Provider>
   );

@@ -8,7 +8,7 @@ export default function Page() {
   const userState = useUserContext();
   const gameState = useGameContext();
 
-  if (gameState.value !== null) {
+  if (gameState.info !== null) {
     return <Game />;
   }
 

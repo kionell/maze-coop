@@ -10,9 +10,9 @@ import {
 } from '@nestjs/websockets';
 
 import { GameConfig } from '@common/interfaces/GameConfig';
-import { GameStatus } from '@common/enums/GameStatus';
 import { GameService } from './game.service';
 import { BrowserGateway } from '../browser/browser.gateway';
+import { UserService } from '../user/user.service';
 
 @WebSocketGateway({ path: '/games' })
 class GameGateway implements OnGatewayConnection {
@@ -20,6 +20,7 @@ class GameGateway implements OnGatewayConnection {
   io: Server;
 
   constructor(
+    private readonly userService: UserService,
     private readonly gameService: GameService,
     private readonly browserGateway: BrowserGateway,
   ) {}
@@ -40,25 +41,46 @@ class GameGateway implements OnGatewayConnection {
     this.browserGateway.updateGames();
   }
 
-  @SubscribeMessage('join_game')
-  async joinGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
+  @SubscribeMessage('start_game')
+  async startGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
     try {
-      const game = await this.gameService.getGameById(id);
-      const data = await this.gameService.addUserToGame(socket, game);
+      const user = await this.userService.findUser(socket);
+      const game = await this.gameService.getCachedGameById(id);
 
-      this.io.to(game.id).emit('game_join', { error: null, data });
+      // Only host can start the game.
+      if (user.id !== game.info.metadata.hostId) return;
+
+      const states = await this.gameService.startGame(game);
+
+      // Send individual game state for each member.
+      states.forEach((state) => {
+        if (!state.member) return;
+
+        this.io.to(state.member.id).emit('game_start', {
+          data: state,
+          error: null,
+        });
+      });
 
       this.browserGateway.updateGames();
     } catch {}
   }
 
-  @SubscribeMessage('start_game')
-  async startGame(@MessageBody() id: string) {
+  @SubscribeMessage('join_game')
+  async joinGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
     try {
-      const game = await this.gameService.getGameById(id);
-      const data = await this.gameService.startGame(game);
+      const game = await this.gameService.getCachedGameById(id);
+      const info = await this.gameService.addUserToGame(socket, game);
 
-      this.io.to(game.id).emit('game_start', { error: null, data });
+      socket.emit('game_connect', {
+        data: info,
+        error: null,
+      });
+
+      socket.broadcast.to(game.info.id).emit('game_join', {
+        data: info.members,
+        error: null,
+      });
 
       this.browserGateway.updateGames();
     } catch {}
@@ -67,13 +89,13 @@ class GameGateway implements OnGatewayConnection {
   @SubscribeMessage('leave_game')
   async leaveGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
     try {
-      const game = await this.gameService.getGameById(id);
-      const data = await this.gameService.removeUserFromGame(socket, game);
+      const game = await this.gameService.getCachedGameById(id);
+      const info = await this.gameService.removeUserFromGame(socket, game);
 
-      // Yeah, it's possible to continue the game even if there is only one player left.
-      const event = data.status === GameStatus.Cancelled ? 'game_cancel' : 'game_leave';
-
-      this.io.to(game.id).emit(event, { error: null, data });
+      this.io.to(game.info.id).emit('game_leave', {
+        data: info.members,
+        error: null,
+      });
 
       this.browserGateway.updateGames();
     } catch {}
@@ -82,7 +104,7 @@ class GameGateway implements OnGatewayConnection {
   handleConnection(socket: Socket) {
     socket.on('disconnecting', () => {
       socket.rooms.forEach((roomId) => {
-        if (socket.id === roomId) return;
+        if (roomId === socket.id) return;
 
         this.leaveGame(socket, roomId);
       });

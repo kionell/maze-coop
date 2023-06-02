@@ -1,7 +1,10 @@
+import { GameStatus } from '../enums/GameStatus';
 import { Position } from '../types/Position';
+import { GameMember } from './GameMember';
 
 export interface GameState {
   position: Position;
   turnIndex: number;
-  positions: Point[];
+  status: GameStatus;
+  member: GameMember;
 }

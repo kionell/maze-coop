@@ -8,7 +8,7 @@ import {
 } from '@nestjs/websockets';
 
 import { BrowserService } from './browser.service';
-import { GameMessage } from '@common/messages/GameMessage';
+import { BrowserMessage } from '@common/messages/BrowserMessage';
 
 @WebSocketGateway({ path: '/browse' })
 class BrowserGateway {
@@ -26,7 +26,7 @@ class BrowserGateway {
     this.io.emit('browser_update', await this.getMessage());
   }
 
-  private async getMessage(): Promise<GameMessage> {
+  private async getMessage(): Promise<BrowserMessage> {
     let data = null;
     let error = null;
 
@@ -36,7 +36,7 @@ class BrowserGateway {
       error = 'Failed to get available games';
     }
 
-    return { data, error } as GameMessage;
+    return { data, error } as BrowserMessage;
   }
 }
 

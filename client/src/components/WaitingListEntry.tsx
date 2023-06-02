@@ -1,8 +1,8 @@
-import { GameCompact } from '@common/interfaces/GameCompact';
+import { GameInfo } from '@common/interfaces/GameInfo';
 import styles from '@styles/Room.module.css';
 import JoinGameButton from './JoinGameButton';
 
-const WaitingListEntry: React.FC<GameCompact> = ({ id, metadata }) => {
+const WaitingListEntry: React.FC<GameInfo> = ({ id, metadata }) => {
   return (
     <div className={styles.entry_container}>
       <span>{metadata.hostname} {new Date(metadata.createdAt).toString()}</span>

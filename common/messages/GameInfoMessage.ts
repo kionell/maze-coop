@@ -1,4 +1,4 @@
 import { GameInfo } from '../interfaces/GameInfo';
 import { WebSocketMessage } from './WebSocketMessage';
 
-export type BrowserMessage = WebSocketMessage<GameInfo[]>;
+export type GameInfoMessage = WebSocketMessage<GameInfo>;
