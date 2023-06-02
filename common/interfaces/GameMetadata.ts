@@ -1,4 +1,4 @@
-import { Timestamp } from "../types/Timestamp";
+import { Timestamp } from '../types/Timestamp';
 
 export interface GameMetadata {
   hostId: string;

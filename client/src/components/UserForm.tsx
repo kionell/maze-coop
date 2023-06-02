@@ -1,5 +1,5 @@
-import { FormEvent } from "react";
-import { useUserContext } from "@hooks/useUserContext";
+import { FormEvent } from 'react';
+import { useUserContext } from '@hooks/useUserContext';
 import styles from '@styles/UserForm.module.css';
 
 const UserForm: React.FC = () => {
@@ -23,17 +23,17 @@ const UserForm: React.FC = () => {
     >
       <label
         className={styles['user-form__label']} 
-        htmlFor="username__input"
+        htmlFor='username__input'
       />
       <input
-        id="username__input"
+        id='username__input'
         className={styles['user-form__input']} 
-        name="username" 
+        name='username' 
       />
       <input 
         className={styles['user-form__button']}
-        type="submit" 
-        value="Start"
+        type='submit' 
+        value='Start'
       />
     </form>
   );

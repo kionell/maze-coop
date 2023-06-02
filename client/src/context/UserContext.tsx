@@ -2,11 +2,11 @@ import {
   createContext, 
   useState,
   ReactNode,
-} from "react";
+} from 'react';
 
-import { useEffectOnce } from "react-use";
+import { useEffectOnce } from 'react-use';
 import { UserCompact } from "@common/interfaces/UserCompact";
-import { userService } from "../services/UserService";
+import { userService } from '../services/UserService';
 
 type UserContextDefaultValue = {
   value: UserCompact | null;

@@ -2,11 +2,11 @@ import {
   createContext, 
   useState,
   ReactNode,
-} from "react";
+} from 'react';
 
 import { GameCompact } from "@common/interfaces/GameCompact";
-import { browserService } from "@services/BrowserService";
-import { gameService } from "@services/GameService";
+import { browserService } from '@services/BrowserService';
+import { gameService } from '@services/GameService';
 
 type GameContextDefaultValue = {
   value: GameCompact | null;

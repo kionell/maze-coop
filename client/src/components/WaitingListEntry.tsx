@@ -1,6 +1,6 @@
 import { GameCompact } from '@common/interfaces/GameCompact';
 import styles from '@styles/Room.module.css';
-import JoinGameButton from "./JoinGameButton";
+import JoinGameButton from './JoinGameButton';
 
 const WaitingListEntry: React.FC<GameCompact> = ({ id, metadata }) => {
   return (
