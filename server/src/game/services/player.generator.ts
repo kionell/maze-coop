@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { GameConfig } from '@common/interfaces/GameConfig';
-import { Point } from '@common/types/Point';
+import { Position } from '@common/types/Position';
 import { DistancePoint } from '@common/types/DistancePoint';
 import { DistanceSpreadRange } from '@common/types/DistanceSpreadRange';
 import { Maze } from '@common/types/Maze';
 import { BFS } from '../utils/bfs';
-import { findExitPoint } from '../utils/maze';
+import { findExitPosition } from '../utils/maze';
 
 @Injectable()
 export class PlayerGenerator {
@@ -16,17 +16,17 @@ export class PlayerGenerator {
    * @param config Game config.
    * @returns Generated spawn points.
    */
-  generate(maze: Maze, config: GameConfig): Point[] {
-    const spawnPoints: Point[] = [];
+  generate(maze: Maze, config: GameConfig): Position[] {
+    const spawnPoints: Position[] = [];
     const pointHistory: DistancePoint[] = [];
 
-    const exitPoint = findExitPoint(maze);
+    const exitPosition = findExitPosition(maze);
 
-    for (const distancePoint of BFS(maze, exitPoint)) {
+    for (const distancePoint of BFS(maze, exitPosition)) {
       const { position, deadend } = distancePoint;
 
-      // Make sure we will not spawn players at the exit point.
-      if (position.x === exitPoint.x && position.y === exitPoint.y) {
+      // Make sure we will not spawn players at the exit position.
+      if (position.x === exitPosition.x && position.y === exitPosition.y) {
         continue;
       }
 

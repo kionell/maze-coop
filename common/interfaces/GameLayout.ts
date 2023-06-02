@@ -1,9 +1,9 @@
 import { Color } from '../types/Color';
 import { Maze } from '../types/Maze';
-import { Point } from '../types/Point';
+import { Position } from '../types/Position';
 
 export interface GameLayout {
   maze: Maze;
-  spawnPoints: Point[];
+  startPositions: Position[];
   colors: Color[];
 }

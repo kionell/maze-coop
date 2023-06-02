@@ -1,7 +1,7 @@
-import { Point } from './Point';
+import { Position } from './Position';
 
 export type DistancePoint = {
-  position: Point;
+  position: Position;
   distance: number;
   deadend: boolean;
 };

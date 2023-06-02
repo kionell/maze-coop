@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { MazeCellType } from '@common/enums/MazeCellType';
 import { Maze } from '@common/types/Maze';
-import { Point } from '@common/types/Point';
+import { Position } from '@common/types/Position';
 import { BFS } from '../utils/bfs';
-import { findExitPoint } from '../utils/maze';
+import { findExitPosition } from '../utils/maze';
 
 @Injectable()
 export class MazeSolver {
   /**
-   * Calculates distance from entry point to exit using BFS algorithm.
+   * Calculates distance from start position to exit using BFS algorithm.
    * @param maze 2D array of maze layout.
-   * @param entry Entry point.
-   * @returns Distance from entry point to exit.
+   * @param start Start position.
+   * @returns Distance from start position to exit.
    */
-  getDistanceToExit(maze: Maze, entry: Point): number {
-    const exit = findExitPoint(maze);
+  getDistanceToExit(maze: Maze, start: Position): number {
+    const exit = findExitPosition(maze);
 
     let maxDistance = -1;
 
-    for (const { distance } of BFS(maze, entry, exit)) {
+    for (const { distance } of BFS(maze, start, exit)) {
       maxDistance = Math.max(maxDistance, distance);
     }
 
@@ -28,12 +28,12 @@ export class MazeSolver {
   /**
    * Solves the maze using BFS algorithm. Mutates the array.
    * @param maze 2D array of maze layout.
-   * @param entry Entry point.
+   * @param start Start position.
    */
-  solve(maze: Maze, entry: Point) {
-    const exit = findExitPoint(maze);
+  solve(maze: Maze, start: Position): void {
+    const exit = findExitPosition(maze);
 
-    for (const { position, distance } of BFS(maze, entry, exit)) {
+    for (const { position, distance } of BFS(maze, start, exit)) {
       if (position.x !== exit.x || position.y !== exit.y) {
         maze[position.y][position.x] = -distance;
       }

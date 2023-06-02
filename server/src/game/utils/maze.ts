@@ -1,9 +1,9 @@
 import { MazeCellType } from '@common/enums/MazeCellType';
 import { Maze } from '@common/types/Maze';
-import { Point } from '@common/types/Point';
+import { Position } from '@common/types/Position';
 
-export function findExitPoint(maze: number[][]): Point {
-  const exitPoint: Point = { x: -1, y: -1 };
+export function findExitPosition(maze: number[][]): Position {
+  const exitPosition: Position = { x: -1, y: -1 };
   const bottomEdgeIndex = maze.length - 1;
 
   for (let y = bottomEdgeIndex; y >= 0; y--) {
@@ -11,17 +11,17 @@ export function findExitPoint(maze: number[][]): Point {
 
     if (y !== 0 && y !== bottomEdgeIndex) {
       if (maze[y][0] === MazeCellType.Exit) {
-        exitPoint.x = 0;
-        exitPoint.y = y;
+        exitPosition.x = 0;
+        exitPosition.y = y;
 
-        return exitPoint;
+        return exitPosition;
       }
 
       if (maze[y][rightEdgeIndex] === MazeCellType.Exit) {
-        exitPoint.x = rightEdgeIndex;
-        exitPoint.y = y;
+        exitPosition.x = rightEdgeIndex;
+        exitPosition.y = y;
 
-        return exitPoint;
+        return exitPosition;
       }
 
       continue;
@@ -29,15 +29,15 @@ export function findExitPoint(maze: number[][]): Point {
 
     for (let x = rightEdgeIndex; x >= 0; x--) {
       if (maze[y][x] === MazeCellType.Exit) {
-        exitPoint.x = x;
-        exitPoint.y = y;
+        exitPosition.x = x;
+        exitPosition.y = y;
 
-        return exitPoint;
+        return exitPosition;
       }
     }
   }
 
-  return exitPoint;
+  return exitPosition;
 }
 
 export function printMaze(maze: Maze): void {

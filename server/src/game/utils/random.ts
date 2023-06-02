@@ -1,5 +1,5 @@
 import { MazeDirection } from '@common/enums/MazeDirection';
-import { Point } from '@common/types/Point';
+import { Position } from '@common/types/Position';
 import { Maze } from '@common/types/Maze';
 
 export function generateRandomMazeDirections(): MazeDirection[] {
@@ -29,14 +29,14 @@ export function generateRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function generateRandomCarvePoint(maze: number[][]): Point {
+export function generateRandomCarvePosition(maze: number[][]): Position {
   return {
     x: Math.trunc(generateRandomInt(1, maze[0].length - 2) / 2) * 2 + 1,
     y: Math.trunc(generateRandomInt(1, maze.length - 2) / 2) * 2 + 1,
   };
 }
 
-export function generateRandomExitPoint(maze: Maze): Point {
+export function generateRandomExitPosition(maze: Maze): Position {
   const direction = generateRandomMazeDirection();
   const exitVariant = Math.round(Math.random());
 

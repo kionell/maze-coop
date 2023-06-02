@@ -5,8 +5,8 @@ import { GameConfig } from '@common/interfaces/GameConfig';
 import { Maze } from '@common/types/Maze';
 
 import {
-  generateRandomCarvePoint,
-  generateRandomExitPoint,
+  generateRandomCarvePosition,
+  generateRandomExitPosition,
   generateRandomMazeDirections,
 } from '../utils/random';
 
@@ -20,13 +20,13 @@ export class MazeGenerator {
   generate({ rows, columns }: GameConfig): Maze {
     const maze = this.create(rows, columns);
 
-    const randomExitPoint = generateRandomExitPoint(maze);
+    const randomExitPosition = generateRandomExitPosition(maze);
 
-    this.carveExit(maze, randomExitPoint.y, randomExitPoint.x);
+    this.carveExit(maze, randomExitPosition.y, randomExitPosition.x);
 
-    const randomCarvePoint = generateRandomCarvePoint(maze);
+    const randomCarvePosition = generateRandomCarvePosition(maze);
 
-    this.carvePassage(maze, randomCarvePoint.y, randomCarvePoint.x);
+    this.carvePassage(maze, randomCarvePosition.y, randomCarvePosition.x);
 
     return maze;
   }

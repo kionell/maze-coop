@@ -1,19 +1,19 @@
-import { Point } from '@common/types/Point';
+import { Position } from '@common/types/Position';
 import { DistancePoint } from '@common/types/DistancePoint';
 import { Maze } from '@common/types/Maze';
 import { MazeCellType } from '@common/enums/MazeCellType';
 
 /**
- * Searches for the shortest path in the maze between two points using BFS.
+ * Searches for the shortest path in the maze between two positions using BFS.
  * If the end point is not specified, algorithm continues its work until all holes are visited.
- * All processed points are yielded using generator syntax.
+ * All processed positions are yielded using generator syntax.
  * @param maze 2D array of maze layout.
- * @param start Start point.
- * @param end End point.
+ * @param start Start position.
+ * @param end End position.
  * @yields Current distance point.
  */
-export function* BFS(maze: Maze, start: Point, end?: Point): Generator<DistancePoint> {
-  const pointQueue: Point[] = [start];
+export function* BFS(maze: Maze, start: Position, end?: Position) {
+  const positionQueue: Position[] = [start];
   const visited = createVisitedArray(maze);
 
   let distance = -1;
@@ -24,11 +24,11 @@ export function* BFS(maze: Maze, start: Point, end?: Point): Generator<DistanceP
   };
 
   // Walk away from the entrace and save their distance (from the entrance).
-  while (pointQueue.length) {
+  while (positionQueue.length) {
     distance++;
 
-    for (let i = pointQueue.length - 1; i >= 0; i--) {
-      const position = pointQueue.shift() as Point;
+    for (let i = positionQueue.length - 1; i >= 0; i--) {
+      const position = positionQueue.shift();
       const { x, y } = position;
 
       deadend = true;
@@ -37,25 +37,25 @@ export function* BFS(maze: Maze, start: Point, end?: Point): Generator<DistanceP
 
       // If north is a hole, then save.
       if (y > 0 && isNotVisitedHole(y - 1, x)) {
-        pointQueue.push({ y: y - 1, x });
+        positionQueue.push({ y: y - 1, x });
         deadend = false;
       }
 
       // If south is a hole, then save.
       if (y < maze.length - 1 && isNotVisitedHole(y + 1, x)) {
-        pointQueue.push({ y: y + 1, x });
+        positionQueue.push({ y: y + 1, x });
         deadend = false;
       }
 
       // If west is a hole, then save.
       if (x > 0 && isNotVisitedHole(y, x - 1)) {
-        pointQueue.push({ y, x: x - 1 });
+        positionQueue.push({ y, x: x - 1 });
         deadend = false;
       }
 
       // If east is a hole, then save.
       if (x < maze[0].length - 1 && isNotVisitedHole(y, x + 1)) {
-        pointQueue.push({ y, x: x + 1 });
+        positionQueue.push({ y, x: x + 1 });
         deadend = false;
       }
 
