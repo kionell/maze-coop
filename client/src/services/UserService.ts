@@ -1,4 +1,4 @@
-import { UserMessage } from '@common/messages/UserMessage';
+import { UserInfoMessage } from '@common/messages/UserInfoMessage';
 import { SocketService } from './SocketService';
 
 export class UserService extends SocketService {
@@ -6,7 +6,7 @@ export class UserService extends SocketService {
     super('/users');
   }
 
-  async create(username: string): Promise<UserMessage> {
+  async create(username: string): Promise<UserInfoMessage> {
     await this.connect();
 
     return new Promise((resolve) => {
@@ -15,7 +15,7 @@ export class UserService extends SocketService {
     });
   }
 
-  async find(): Promise<UserMessage> {
+  async find(): Promise<UserInfoMessage> {
     await this.connect();
 
     return new Promise((resolve) => {

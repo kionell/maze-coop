@@ -5,11 +5,11 @@ import {
 } from 'react';
 
 import { useEffectOnce } from 'react-use';
-import { UserCompact } from "@common/interfaces/UserCompact";
+import { UserInfo } from '@common/interfaces/UserInfo';
 import { userService } from '../services/UserService';
 
 type UserContextDefaultValue = {
-  value: UserCompact | null;
+  value: UserInfo | null;
   set: (username: string | null) => void;
 };
 
@@ -23,28 +23,28 @@ interface IUserProviderProps {
 }
 
 export function UserProvider({ children }: IUserProviderProps) {
-  const [state, setState] = useState<UserCompact | null>(null);
+  const [localUser, setLocalUser] = useState<UserInfo | null>(null);
 
   const setUser = async (username: string | null) => {
-    if (state?.username === username) return;
+    if (localUser?.username === username) return;
     
     if (username === null) {
       await userService.logout();
 
-      return setState(null);
+      return setLocalUser(null);
     }
      
     const message = await userService.create(username);
 
-    setState(message.data);
+    setLocalUser(message.data);
   }
 
   useEffectOnce(() => {
-    userService.find().then((message) => setState(message.data));
+    userService.find().then((message) => setLocalUser(message.data));
   });
 
   return (
-    <UserContext.Provider value={{ value: state, set: setUser }}>
+    <UserContext.Provider value={{ value: localUser, set: setUser }}>
       {children}
     </UserContext.Provider>
   );
