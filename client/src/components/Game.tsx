@@ -1,5 +1,5 @@
 // import { useLeavePageConfirm } from '@hooks/useLeavePageConfirm';
-import { usePlayerListUpdate } from '@hooks/usePlayerListUpdate';
+import { useGameStateUpdate } from '@hooks/useGameStateUpdate';
 import { useGameContext } from '@hooks/useGameContext';
 import { GameStatus } from '@common/enums/GameStatus';
 import WaitingScreen from './WaitingScreen';
@@ -9,10 +9,14 @@ export default function Game() {
   const gameState = useGameContext();
 
   // useLeavePageConfirm();
-  usePlayerListUpdate();
+  useGameStateUpdate();
 
-  if (gameState.value?.status === GameStatus.Started) {
-    return <Maze />
+  if (gameState.state) {
+    const status = gameState.state.status;
+
+    switch (status) {
+      case GameStatus.Started: return <Maze />;
+    }
   }
 
   return <WaitingScreen />;

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useEffectOnce } from 'react-use';
-import { GameCompact } from "@common/interfaces/GameCompact";
+import { GameInfo } from '@common/interfaces/GameInfo';
 import { browserService } from '@services/BrowserService';
 
 export function useGameBrowser() {
-  const [games, setGames] = useState<GameCompact[]>([]);
+  const [games, setGames] = useState<GameInfo[]>([]);
 
   useEffectOnce(() => {
     browserService.onUpdate((message) => {

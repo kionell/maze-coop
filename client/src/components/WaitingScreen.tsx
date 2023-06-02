@@ -1,20 +1,15 @@
 import { useReadableTimeInterval } from '@hooks/useReadableTimeInterval';
-import { useGameContext } from '@hooks/useGameContext';
+import { useMemberCount } from '@hooks/useMemberCount';
 import styles from '@styles/Dashboard.module.css';
 
 const WaitingScreen: React.FC = () => {
-  const gameState = useGameContext();
-
-  const createdAt = gameState.value?.metadata.createdAt;
-  const memberCount = gameState.value?.memberCount ?? 0;
-  const totalMembers = gameState.value?.config.maxPlayers ?? 0;
-  
-  const passedTime = useReadableTimeInterval(createdAt);
+  const passedTime = useReadableTimeInterval();
+  const [current, total] = useMemberCount();
 
   return (
     <div className={styles.dashboard_container}>
       <span>The game was created { passedTime } ago.</span>
-      <span>Waiting for others players... ({memberCount} / {totalMembers})</span>
+      <span>Waiting for others players... ({ current } / { total })</span>
     </div>
   );
 }
