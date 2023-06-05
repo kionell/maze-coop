@@ -1,54 +1,37 @@
-import { useRef, useState } from 'react';
-import { useGameContext } from '@hooks/useGameContext';
-import { useEffectOnce } from 'react-use';
+import { useRef } from 'react';
+import { useMazeDraw } from '../hooks/useMazeDraw';
 import styles from '@styles/Maze.module.css';
 
 const Maze: React.FC = () => {
-  const gameState = useGameContext();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  const hiddenRef = useRef<HTMLCanvasElement>(null);
-  const displayRef = useRef<HTMLCanvasElement>(null);
+  useMazeDraw((source) => {
+    if (!canvasRef.current) return;
 
-  useEffectOnce(() => {
-    if (!hiddenRef.current || !displayRef.current || !gameState.info || !gameState.state) return;
+    const scale = 25;
 
-    console.log(gameState.state);
+    const sw = source.width;
+    const sh = source.height;
+    const dw = sw * scale;
+    const dh = sh * scale;
 
-    const width = gameState.info.config.columns * 2 + 1;
-    const height = gameState.info.config.rows * 2 + 1;
-    const pixelSize = 25;
+    if (!contextRef.current) {
+      canvasRef.current.width = source.width * scale;
+      canvasRef.current.height = source.height * scale;
 
-    hiddenRef.current.width = width;
-    hiddenRef.current.height = height;
+      contextRef.current = canvasRef.current.getContext('2d')!;
+      contextRef.current.imageSmoothingEnabled = false;
+    }
 
-    displayRef.current.width = width * pixelSize;
-    displayRef.current.height = height * pixelSize;
-
-    const hiddenContext = hiddenRef.current.getContext('2d') as CanvasRenderingContext2D;
-    const displayContext = displayRef.current.getContext('2d') as CanvasRenderingContext2D;
-
-    hiddenContext.imageSmoothingEnabled = false;
-    displayContext.imageSmoothingEnabled = false;
-
-    hiddenContext.fillStyle = 'white';
-    hiddenContext.fillRect(0, 0, width, height);
-
-    hiddenContext.fillStyle = gameState.state.member.color;
-    hiddenContext.fillRect(gameState.state.position.x, gameState.state.position.y, 1, 1);
-
-    displayContext.drawImage(hiddenRef.current, 0, 0, width, height, 0, 0, width * pixelSize, height * pixelSize);
+    contextRef.current.drawImage(source, 0, 0, sw, sh, 0, 0, dw, dh);
   });
 
   return (
     <div className={styles.canvas_area}>
       <canvas 
-        className={`${styles.hidden_canvas} ${styles.canvases}`}
-        ref={hiddenRef}
-      />
-
-      <canvas 
         className={`${styles.display_canvas} ${styles.canvases}`}
-        ref={displayRef}
+        ref={canvasRef}
       />
     </div>
   );
