@@ -44,16 +44,6 @@ export function useGameStateUpdate() {
       gameState.setState({ ...gameState.state, turnIndex: data });
     });
 
-    gameService.onNextPosition(({ data }) => {
-      if (!gameState.state) return;
-
-      const position = gameState.state.position;
-
-      if (position.x === data.x && position.y === data.y) return;
-
-      gameState.setState({ ...gameState.state, position: data });
-    });
-
     return () => {
       gameService.offStart();
       gameService.offJoin();
