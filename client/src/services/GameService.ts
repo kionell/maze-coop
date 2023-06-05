@@ -5,6 +5,7 @@ import { MemberListMessage } from '@common/messages/MemberListMessage';
 import { NextTurnMessage } from '@common/messages/NextTurnMessage';
 import { PositionMessage } from '@common/messages/PositionMessage';
 import { GameConfig } from '@common/interfaces/GameConfig';
+import { ChatMessage } from '@common/interfaces/ChatMessage';
 import { SocketService } from './SocketService';
 
 type GameStartMessageListener = (msg: GameStartMessage) => void;
@@ -41,6 +42,12 @@ export class GameService extends SocketService {
     await this.connect();
 
     this.socket.emit('leave_game', id);
+  }
+
+  async move(msg: ChatMessage): Promise<void> {
+    await this.connect();
+
+    this.socket.emit('game_set_position', msg);
   }
 
   onCreate(listener: GameInfoMessageListener): void {

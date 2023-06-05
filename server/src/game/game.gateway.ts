@@ -13,6 +13,7 @@ import { GameConfig } from '@common/interfaces/GameConfig';
 import { GameService } from './game.service';
 import { BrowserGateway } from '../browser/browser.gateway';
 import { UserService } from '../user/user.service';
+import { ChatMessage } from '@common/interfaces/ChatMessage';
 
 @WebSocketGateway({ path: '/games' })
 class GameGateway implements OnGatewayConnection {
@@ -26,7 +27,10 @@ class GameGateway implements OnGatewayConnection {
   ) {}
 
   @SubscribeMessage('create_game')
-  async createGame(@ConnectedSocket() socket: Socket, @MessageBody() config: GameConfig) {
+  async createGame(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() config: GameConfig,
+  ) {
     let data = null;
     let error = null;
 
@@ -42,7 +46,10 @@ class GameGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('start_game')
-  async startGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
+  async startGame(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() id: string,
+  ) {
     try {
       const user = await this.userService.findUser(socket);
       const game = await this.gameService.getCachedGameById(id);
@@ -70,7 +77,7 @@ class GameGateway implements OnGatewayConnection {
   async joinGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
     try {
       const game = await this.gameService.getCachedGameById(id);
-      const info = await this.gameService.addUserToGame(socket, game);
+      const info = await this.gameService.addMember(socket, game);
 
       socket.emit('game_connect', {
         data: info,
@@ -87,10 +94,13 @@ class GameGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('leave_game')
-  async leaveGame(@ConnectedSocket() socket: Socket, @MessageBody() id: string) {
+  async leaveGame(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() id: string,
+  ) {
     try {
       const game = await this.gameService.getCachedGameById(id);
-      const info = await this.gameService.removeUserFromGame(socket, game);
+      const info = await this.gameService.removeMember(socket, game);
 
       this.io.to(game.info.id).emit('game_leave', {
         data: info.members,
@@ -98,6 +108,22 @@ class GameGateway implements OnGatewayConnection {
       });
 
       this.browserGateway.updateGames();
+    } catch {}
+  }
+
+  @SubscribeMessage('game_set_position')
+  async processCommand(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() message: ChatMessage,
+  ) {
+    try {
+      const game = await this.gameService.getCachedGameById(message.gameId);
+      const nextPosition = await this.gameService.moveMember(game, message);
+
+      socket.emit('game_next_position', {
+        data: nextPosition,
+        error: null,
+      });
     } catch {}
   }
 

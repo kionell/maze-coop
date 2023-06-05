@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useMazeDraw } from '../hooks/useMazeDraw';
+import { useGameControl } from '../hooks/useGameControl';
 import styles from '@styles/Maze.module.css';
 
 const Maze: React.FC = () => {
@@ -26,6 +27,8 @@ const Maze: React.FC = () => {
 
     contextRef.current.drawImage(source, 0, 0, sw, sh, 0, 0, dw, dh);
   });
+
+  useGameControl();
 
   return (
     <div className={styles.canvas_area}>

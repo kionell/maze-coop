@@ -1,4 +1,4 @@
-import { Position } from '../types/Position';
+import { NextPosition } from '../interfaces/NextPosition';
 import { WebSocketMessage } from './WebSocketMessage';
 
-export type PositionMessage = WebSocketMessage<Position>;
+export type PositionMessage = WebSocketMessage<NextPosition>;

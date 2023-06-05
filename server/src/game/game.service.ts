@@ -6,12 +6,15 @@ import { GameState } from '@common/interfaces/GameState';
 import { GameInfo } from '@common/interfaces/GameInfo';
 import { GameMember } from '@common/interfaces/GameMember';
 import { GameConfig } from '@common/interfaces/GameConfig';
+import { ChatMessage } from '@common/interfaces/ChatMessage';
+import { NextPosition } from '@common/interfaces/NextPosition';
 import { GameStatus } from '@common/enums/GameStatus';
 import { UserService } from '../user/user.service';
 import { RedisService } from '../redis/redis.service';
 import { MazeGenerator } from './services/maze.generator';
 import { PlayerGenerator } from './services/player.generator';
 import { ColorGenerator } from './services/color.generator';
+import { MazeCellType } from '../../../common/enums/MazeCellType';
 
 @Injectable()
 export class GameService {
@@ -91,7 +94,7 @@ export class GameService {
     });
   }
 
-  async addUserToGame(socket: Socket, game: CachedGame): Promise<GameInfo> {
+  async addMember(socket: Socket, game: CachedGame): Promise<GameInfo> {
     const { id, members } = game.info;
 
     const user = await this.userService.findUser(socket);
@@ -123,7 +126,7 @@ export class GameService {
     return game.info;
   }
 
-  async removeUserFromGame(socket: Socket, game: CachedGame): Promise<GameInfo> {
+  async removeMember(socket: Socket, game: CachedGame): Promise<GameInfo> {
     const { id, members } = game.info;
 
     const user = await this.userService.findUser(socket);
@@ -150,6 +153,70 @@ export class GameService {
     await socket.leave(id);
 
     return game.info;
+  }
+
+  async moveMember(
+    game: CachedGame,
+    message: ChatMessage,
+  ): Promise<NextPosition> {
+    const memberIndex = game.info.members.list.findIndex((member) => {
+      return member && member.id === message.member.id;
+    });
+
+    if (!game.positions[memberIndex]) {
+      throw new Error('Member is not found!');
+    }
+
+    const oldPosition = game.positions[memberIndex];
+    const oldType = game.layout.maze[oldPosition.y][oldPosition.x];
+
+    const newPosition = { ...oldPosition };
+
+    switch (message.content) {
+      case 'up':
+        newPosition.y--;
+        break;
+
+      case 'down':
+        newPosition.y++;
+        break;
+
+      case 'left':
+        newPosition.x--;
+        break;
+
+      case 'right':
+        newPosition.x++;
+    }
+
+    newPosition.x = Math.min(
+      Math.max(0, newPosition.x),
+      game.info.config.columns * 2,
+    );
+
+    newPosition.y = Math.min(
+      Math.max(0, newPosition.y),
+      game.info.config.rows * 2,
+    );
+
+    const newType = game.layout.maze[newPosition.y][newPosition.x];
+
+    if (newType !== MazeCellType.Wall) {
+      game.positions[memberIndex] = newPosition;
+
+      this.redisService.set(game.info.id, game);
+    }
+
+    return {
+      old: {
+        position: oldPosition,
+        type: oldType,
+      },
+      new: {
+        position: newPosition,
+        type: newType,
+      },
+    };
   }
 
   async getCachedGameById(id: string): Promise<CachedGame> {
