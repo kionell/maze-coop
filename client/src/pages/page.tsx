@@ -1,8 +1,8 @@
 import { useUserContext } from '@hooks/useUserContext';
 import { useGameContext } from '@hooks/useGameContext';
 import UserForm from '@components/UserForm';
-import Dashboard from '@components/Dashboard';
-import Game from '@components/Game';
+import Dashboard from './Dashboard';
+import Game from './Game';
 
 export default function Page() {
   const userState = useUserContext();

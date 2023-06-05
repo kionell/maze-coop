@@ -3,7 +3,7 @@ import { useGameStateUpdate } from '@hooks/useGameStateUpdate';
 import { useGameContext } from '@hooks/useGameContext';
 import { GameStatus } from '@common/enums/GameStatus';
 import WaitingScreen from './WaitingScreen';
-import Maze from './Maze';
+import Maze from '../components/Maze';
 
 export default function Game() {
   const gameState = useGameContext();
